@@ -1,5 +1,3 @@
-/* globals window:true, document:true, Element:true */
-
 "use strict";
 
 /**
