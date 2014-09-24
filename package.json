@@ -1,0 +1,55 @@
+{
+    "name": "event-dom",
+    "version": "0.0.1",
+    "description": "DOM-events - extends ITSA-event",
+    "author": [
+        {
+            "name": "Marco Asbreuk",
+            "email": "marco@itsasbreuk.nl"
+        }
+    ],
+    "main": "event-dom.js",
+    "keywords": [
+        "itsa",
+        "event",
+        "events",
+        "dom",
+        "domevents",
+        "dom-events",
+        "parcela"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/itsa/event-dom"
+    },
+    "bugs": {
+        "url": "https://github.com/itsa/core/issues"
+    },
+    "dependencies": {
+        "event": "itsa/event",
+        "utils": "itsa/utils"
+    },
+    "devDependencies": {
+        "chai": "^1.9.1",
+        "istanbul": "^0.3.0",
+        "jshint": "^2.5.5",
+        "mocha": "^1.21.4",
+        "node-win": "itsa/node-win"
+    },
+    "engines": {
+        "node": "*"
+    },
+    "scripts": {
+        "pretest": "jshint ./event-dom.js",
+        "test": "mocha tests/*.js  && istanbul cover $(which _mocha) -- tests/*.js",
+        "lint": "jshint ./event-dom.js"
+    },
+    "homepage": "http://itsa.github.io",
+    "maintainers": [
+        {
+            "name": "Marco Asbreuk",
+            "email": "marco@itsasbreuk.nl"
+        }
+    ],
+    "license": "New BSD"
+}
