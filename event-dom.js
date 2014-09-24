@@ -21,7 +21,6 @@
  *
 */
 
-
 var NAME = '[event-dom]: ',
     Event = require('event'),
     async = require('utils').async,
