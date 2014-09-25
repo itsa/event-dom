@@ -53,7 +53,7 @@ module.exports = function (window) {
         NEW_EVENTSYSTEM = DOCUMENT.addEventListener,
         OLD_EVENTSYSTEM = !NEW_EVENTSYSTEM && DOCUMENT.attachEvent,
         DOM_Events, _bubbleIE8, _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor,
-        _filter, _setupDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc;
+        _setupDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc;
 
     if (!window._ITSAmodules) {
         Object.defineProperty(window, '_ITSAmodules', {
@@ -276,33 +276,6 @@ module.exports = function (window) {
     };
 
     /*
-     * Filters a list of subscribers to only those subscribers that match the filter.
-     *
-     * @method _filter
-     * @param subscriber {Object} subscriber
-     * @param subscriber.o {Object} context
-     * @param subscriber.cb {Function} callbackFn
-     * @param subscriber.f {Function|String} filter
-     * @param e {Object} eventobject
-     * @private
-     * @return {Array} sublist of the subscribers: only those who match the filter.
-     * @since 0.0.1
-     */
-    _filter = function(subscribers, e) {
-        console.log(NAME, '_filter');
-        var filtered = [];
-        subscribers.forEach(
-            function(subscriber) {
-                console.log(NAME, '_filter for subscriber');
-                if (!subscriber.f || subscriber.f.call(subscriber.o, e)) {
-                    filtered.push(subscriber);
-                }
-            }
-        );
-        return filtered;
-    };
-
-    /*
      * Creates an array of subscribers in the right order, conform their position in the DOM.
      * Only subscribers that match the filter are involved.
      *
@@ -327,7 +300,10 @@ module.exports = function (window) {
         saveConcat(named_wildcard_subs);
         saveConcat(wildcard_wildcard_subs);
         if (subscribers.length>0) {
-            subscribers=_filter(subscribers, e);
+            subscribers = subscribers.filter(function(subscriber) {
+                console.log(NAME, 'filtercheck for subscriber');
+                return (!subscriber.f || subscriber.f.call(subscriber.o, e));
+            });
             if (subscribers.length>0) {
                 _findCurrentTargets(subscribers);
                 // sorting, based upon the sortFn
