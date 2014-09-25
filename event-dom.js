@@ -29,6 +29,7 @@ var NAME = '[event-dom]: ',
     REGEXP_NODE_ID = /^#\S+$/,
     REGEXP_EXTRACT_NODE_ID = /#(\S+)/,
     REGEXP_UI_OUTSIDE = /^.+outside$/,
+
     /*
      * Internal hash containing all DOM-events that are listened for (at `document`).
      *
