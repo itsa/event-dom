@@ -55,16 +55,22 @@ module.exports = function (window) {
         DOM_Events, _bubbleIE8, _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor,
         _filter, _setupDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc;
 
-    window.Parcela || (window.Parcela={});
-    window.Parcela.modules || (window.Parcela.modules={});
+    if (!window._ITSAmodules) {
+        Object.defineProperty(window, '_ITSAmodules', {
+            configurable: false,
+            enumerable: false,
+            writable: false,
+            value: {} // `writable` is false means we cannot chance the value-reference, but we can change {} its members
+        });
+    }
 
-    if (window.Parcela.modules.EventDom) {
+    if (window._ITSAmodules.EventDom) {
         return Event; // Event was already extended
     }
 
     // polyfill for Element.matchesSelector
     // based upon https://gist.github.com/jonathantneal/3062955
-    window.Element && function(ElementPrototype) {
+    window.Element && (function(ElementPrototype) {
         ElementPrototype.matchesSelector = ElementPrototype.matchesSelector ||
         ElementPrototype.mozMatchesSelector ||
         ElementPrototype.msMatchesSelector ||
@@ -77,15 +83,15 @@ module.exports = function (window) {
             while (nodes[++i] && (nodes[i] !== node));
             return !!nodes[i];
         };
-    }(window.Element.prototype);
+    }(window.Element.prototype));
 
     // polyfill for Node.contains
-    window.Node && !window.Node.prototype.contains && function(NodePrototype) {
+    window.Node && !window.Node.prototype.contains && (function(NodePrototype) {
         NodePrototype.contains = function(child) {
             var comparison = this.compareDocumentPosition(child);
             return !!((comparison===0) || (comparison & DOCUMENT_POSITION_CONTAINED_BY));
         };
-    }(window.Node.prototype);
+    }(window.Node.prototype));
 
     /*
      * Polyfill for bubbling the `focus` and `blur` events in IE8.
@@ -500,6 +506,6 @@ module.exports = function (window) {
     OLD_EVENTSYSTEM && _bubbleIE8();
 
     // store module:
-    window.Parcela.modules.EventDom = Event;
+    window._ITSAmodules.EventDom = Event;
     return Event;
 };

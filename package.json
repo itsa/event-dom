@@ -15,8 +15,7 @@
         "events",
         "dom",
         "domevents",
-        "dom-events",
-        "parcela"
+        "dom-events"
     ],
     "repository": {
         "type": "git",
