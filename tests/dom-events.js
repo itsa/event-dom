@@ -10,9 +10,6 @@
         document = window.document,
         EMIT_CLICK_EVENT, EMIT_FOCUS_EVENT, EMIT_KEY_EVENT, buttonnode, divnode, divnode2;
 
-    require('event/event-emitter.js');
-    require('event/event-listener.js');
-
     EMIT_CLICK_EVENT = function(target) {
         // dom.level2.events.MouseEvent('click');
         var customEvent,

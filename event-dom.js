@@ -21,8 +21,6 @@
  * @since 0.0.1
 */
 
-require('polyfill');
-
 
 var NAME = '[event-dom]: ',
     Event = require('event'),
