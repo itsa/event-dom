@@ -25,7 +25,6 @@
         "url": "https://github.com/itsa/core/issues"
     },
     "dependencies": {
-        "polyfill": "itsa/polyfill",
         "event": "itsa/event",
         "utils": "itsa/utils"
     },

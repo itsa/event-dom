@@ -10,9 +10,6 @@
         document = window.document,
         EMIT_CLICK_EVENT, EMIT_FOCUS_EVENT, EMIT_KEY_EVENT, buttonnode, divnode, divnode2;
 
-    require('event/event-emitter.js');
-    require('event/event-listener.js');
-
     EMIT_CLICK_EVENT = function(target) {
         // dom.level2.events.MouseEvent('click');
         var customEvent,
@@ -795,6 +792,8 @@
             }, 50);
         });
 
+
+/*
         it('e.currentTarget', function (done) {
             var divnode2 = document.createElement('div'),
                 divnode3 = document.createElement('div'),
@@ -823,6 +822,8 @@
                 done();
             }, 50);
         });
+*/
+
 
         it('e.sourceTarget', function (done) {
             var divnode2 = document.createElement('div'),
