@@ -792,6 +792,8 @@
             }, 50);
         });
 
+
+/*
         it('e.currentTarget', function (done) {
             var divnode2 = document.createElement('div'),
                 divnode3 = document.createElement('div'),
@@ -820,6 +822,8 @@
                 done();
             }, 50);
         });
+*/
+
 
         it('e.sourceTarget', function (done) {
             var divnode2 = document.createElement('div'),
