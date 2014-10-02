@@ -130,6 +130,18 @@ module.exports = function (window) {
         });
     };
 
+    /*
+     * Transfprms the selector to a valid function
+     *
+     * @method _evCallback
+     * @param customEvent {String} the customEvent that is transported to the eventsystem
+     * @param subscriber {Object} subscriber
+     * @param subscriber.o {Object} context
+     * @param subscriber.cb {Function} callbackFn
+     * @param subscriber.f {Function|String} filter
+     * @private
+     * @since 0.0.1
+     */
     _selToFunc = function(customEvent, subscriber) {
         Event._sellist.some(function(selFn) {
             return selFn(customEvent, subscriber);
