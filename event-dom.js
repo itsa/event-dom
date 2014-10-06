@@ -1,19 +1,15 @@
 "use strict";
 
 /**
- * Integrates DOM-events to core-event-base. more about DOM-events:
+ * Integrates DOM-events to event. more about DOM-events:
  * http://www.smashingmagazine.com/2013/11/12/an-introduction-to-dom-events/
- *
- * Should be called using  the provided `mergeInto`-method like this:
  *
  *
  * <i>Copyright (c) 2014 ITSA - https://github.com/itsa</i>
  * New BSD License - http://choosealicense.com/licenses/bsd-3-clause/
  *
  * @example
- * Event = require('event');
- * DOMEvent = require('event-dom');
- * DOMEvent.mergeInto(Event);
+ * Event = require('event-dom')(window);
  *
  * @module event
  * @submodule event-dom
@@ -46,7 +42,6 @@ var NAME = '[event-dom]: ',
      * @private
      * @since 0.0.1
     */
-    DOCUMENT_POSITION_CONTAINED_BY = 16,
     DOMEvents = {};
 
 module.exports = function (window) {
@@ -55,6 +50,9 @@ module.exports = function (window) {
         OLD_EVENTSYSTEM = !NEW_EVENTSYSTEM && DOCUMENT.attachEvent,
         DOM_Events, _bubbleIE8, _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor,
         _setupDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc;
+
+    require('polyfill/lib/element.matchesselector.js')(window);
+    require('polyfill/lib/node.contains.js')(window);
 
     if (!window._ITSAmodules) {
         Object.defineProperty(window, '_ITSAmodules', {
@@ -68,31 +66,6 @@ module.exports = function (window) {
     if (window._ITSAmodules.EventDom) {
         return Event; // Event was already extended
     }
-
-    // polyfill for Element.matchesSelector
-    // based upon https://gist.github.com/jonathantneal/3062955
-    window.Element && (function(ElementPrototype) {
-        ElementPrototype.matchesSelector = ElementPrototype.matchesSelector ||
-        ElementPrototype.mozMatchesSelector ||
-        ElementPrototype.msMatchesSelector ||
-        ElementPrototype.oMatchesSelector ||
-        ElementPrototype.webkitMatchesSelector ||
-        function (selector) {
-            var node = this,
-                nodes = (node.parentNode || DOCUMENT).querySelectorAll(selector),
-                i = -1;
-            while (nodes[++i] && (nodes[i] !== node));
-            return !!nodes[i];
-        };
-    }(window.Element.prototype));
-
-    // polyfill for Node.contains
-    window.Node && !window.Node.prototype.contains && (function(NodePrototype) {
-        NodePrototype.contains = function(child) {
-            var comparison = this.compareDocumentPosition(child);
-            return !!((comparison===0) || (comparison & DOCUMENT_POSITION_CONTAINED_BY));
-        };
-    }(window.Node.prototype));
 
     /*
      * Polyfill for bubbling the `focus` and `blur` events in IE8.
@@ -418,11 +391,23 @@ module.exports = function (window) {
         }
 
         if (NEW_EVENTSYSTEM) {
-            // important: set the third argument `true` so we listen to the capture-phase.
-            DOCUMENT.addEventListener(eventName, _evCallback, true);
+            // one exeption: windowresize should listen to the window-object
+            if (eventName==='resize') {
+                window.addEventListener(eventName, _evCallback);
+            }
+            else {
+                // important: set the third argument `true` so we listen to the capture-phase.
+                DOCUMENT.addEventListener(eventName, _evCallback, true);
+            }
         }
         else if (OLD_EVENTSYSTEM) {
-            DOCUMENT.attachEvent('on'+eventName, _evCallback);
+            // one exeption: windowresize should listen to the window-object
+            if (eventName==='resize') {
+                window.attachEvent('on'+eventName, _evCallback);
+            }
+            else {
+                DOCUMENT.attachEvent('on'+eventName, _evCallback);
+            }
         }
         DOMEvents[eventName] = true;
         outsideEvent && (DOMEvents[eventName+OUTSIDE]=true);

@@ -1,6 +1,6 @@
 {
     "name": "event-dom",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "DOM-events - extends ITSA-event",
     "author": [
         {
@@ -25,7 +25,9 @@
         "url": "https://github.com/itsa/core/issues"
     },
     "dependencies": {
+        "polyfill": "itsa/polyfill",
         "event": "itsa/event",
+        "dom-ext": "itsa/dom-ext",
         "utils": "itsa/utils"
     },
     "devDependencies": {
@@ -34,6 +36,9 @@
         "jshint": "^2.5.5",
         "mocha": "^1.21.4",
         "node-win": "itsa/node-win"
+    },
+    "directories": {
+        "extra": "./extra"
     },
     "engines": {
         "node": "*"

@@ -1,4 +1,4 @@
-/*global describe, it */
+/*global describe, it, before, after, afterEach */
 
 (function (window) {
 
@@ -278,7 +278,7 @@
                 // manual filterfunction doesn't reset e.target
                 e.target.id.should.be.eql('buttongo');
             }, function(e) {
-                return e.target.id==='buttongo'
+                return e.target.id==='buttongo';
             });
             EMIT_CLICK_EVENT(buttonnode);
             // CAUTIOUS: do not set timeout to 0 --> IE9 puts the after-dom-events
