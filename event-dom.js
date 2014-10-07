@@ -20,7 +20,7 @@
 
 var NAME = '[event-dom]: ',
     Event = require('event'),
-    async = require('utils').async,
+    later = require('utils').later,
     OUTSIDE = 'outside',
     REGEXP_UI = /^UI:/,
     REGEXP_NODE_ID = /^#\S+$/,
@@ -253,11 +253,11 @@ module.exports = function (window) {
             // we need to do this asynchronous: this way we pass them AFTER the DOM-event's defaultFn
             // also make sure to paas-in the payload of the manipulated eventobject
             subscribers = _getSubscribers(e, false, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs);
-            (subscribers.length>0) && async(Event._emit.bind(Event, e.target, customEvent, eventobject, [], subscribers, _preProcessor, true), false);
+            (subscribers.length>0) && later(Event._emit.bind(Event, e.target, customEvent, eventobject, [], subscribers, _preProcessor, true), 10, false);
 
             // now check outside subscribers
             subscribers = _getSubscribers(e, false, subsOutside, wildcard_named_subsOutside);
-            (subscribers.length>0) && async(Event._emit.bind(Event, e.target, customEvent+OUTSIDE, eventobjectOutside, [], subscribers, _preProcessor, true), false);
+            (subscribers.length>0) && later(Event._emit.bind(Event, e.target, customEvent+OUTSIDE, eventobjectOutside, [], subscribers, _preProcessor, true), 10, false);
         }
     };
 
