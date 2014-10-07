@@ -146,9 +146,9 @@ module.exports = function (window) {
 
         valueChangeData = node.getData(DATA_KEY);
         // cancel previous timer: we don't want multiple timers:
-        valueChangeData.timer && valueChangeData.timer.cancel();
+        valueChangeData._pollTimer && valueChangeData._pollTimer.cancel();
         // setup a new timer:
-        valueChangeData.timer = UTILS.later(checkChanged.bind(null, e), POLL_INTERVAL, true);
+        valueChangeData._pollTimer = UTILS.later(checkChanged.bind(null, e), POLL_INTERVAL, true);
     },
 
 
@@ -162,8 +162,11 @@ module.exports = function (window) {
      */
     stopPolling = function(node) {
         console.log(NAME, 'stopPolling');
-        var valueChangeData = node.getData(DATA_KEY);
-        valueChangeData && valueChangeData.timer && valueChangeData.timer.cancel();
+        var valueChangeData;
+        if (node && node.getData) {
+            valueChangeData = node.getData(DATA_KEY);
+            valueChangeData && valueChangeData._pollTimer && valueChangeData._pollTimer.cancel();
+        }
     },
 
 

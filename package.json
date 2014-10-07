@@ -28,6 +28,8 @@
         "polyfill": "itsa/polyfill",
         "event": "itsa/event",
         "dom-ext": "itsa/dom-ext",
+        "js-ext": "itsa/js-ext",
+        "window-ext": "itsa/window-ext",
         "utils": "itsa/utils"
     },
     "devDependencies": {

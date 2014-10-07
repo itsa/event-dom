@@ -48,7 +48,7 @@ module.exports = function (window) {
             console.log(NAME, 'setupHover: setting up mouseover event');
             var node = e.target;
             e.hover = new Promise(function(fulfill, reject) {
-                Event.after(
+                Event.onceAfter(
                     'mouseout',
                     function(e) {
                         fulfill(e.relatedTarget);
