@@ -233,7 +233,6 @@ module.exports = function (window) {
         console.log(NAME, 'document._emitVC');
         var e = {
             value: value,
-            target: node,
             currentTarget: window.document,
             sourceTarget: node
         };
