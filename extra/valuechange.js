@@ -79,7 +79,7 @@ module.exports = function (window) {
     startFocus = function(e) {
         console.log(NAME, 'startFocus');
         var node = e.target,
-            editable, valueChangeData, previousValue;
+            editable, valueChangeData;
 
         if (!editableNode(node)) {
             return;

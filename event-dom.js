@@ -22,7 +22,6 @@ var NAME = '[event-dom]: ',
     Event = require('event'),
     later = require('utils').later,
     OUTSIDE = 'outside',
-    REGEXP_UI = /^UI:/,
     REGEXP_NODE_ID = /^#\S+$/,
     REGEXP_EXTRACT_NODE_ID = /#(\S+)/,
     REGEXP_UI_OUTSIDE = /^.+outside$/,
@@ -44,12 +43,16 @@ var NAME = '[event-dom]: ',
     */
     DOMEvents = {};
 
+    require('js-ext/lib/string.js');
+    require('js-ext/lib/array.js');
+    require('js-ext/lib/object.js');
+
 module.exports = function (window) {
     var DOCUMENT = window.document,
         NEW_EVENTSYSTEM = DOCUMENT.addEventListener,
         OLD_EVENTSYSTEM = !NEW_EVENTSYSTEM && DOCUMENT.attachEvent,
-        DOM_Events, _bubbleIE8, _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor,
-        _setupDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc;
+        _bubbleIE8, _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor,
+        _setupDomListener, _teardownDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc;
 
     require('polyfill/lib/element.matchesselector.js')(window);
     require('polyfill/lib/node.contains.js')(window);
@@ -437,23 +440,65 @@ module.exports = function (window) {
         return (subscriberOne.t || subscriberOne.n).contains(subscriberTwo.t || subscriberTwo.n) ? 1 : -1;
     };
 
+    /*
+     * Removes DOM-eventsubscribers from document when they are no longer needed.
+     *
+     * @method _teardownDomListener
+     * @param customEvent {String} the customEvent that is transported to the eventsystem
+     * @private
+     * @since 0.0.2
+     */
+    _teardownDomListener = function(customEvent) {
+        var customEventWithoutOutside = customEvent.endsWith(OUTSIDE) ? customEvent.substr(0, customEvent.length-7) : customEvent,
+            eventSplitted = customEventWithoutOutside.split(':'),
+            eventName = eventSplitted[1];
+
+        if (!Event._subs[customEventWithoutOutside] && !Event._subs[customEventWithoutOutside+OUTSIDE]) {
+            console.log(NAME, '_teardownDomListener '+customEvent);
+            // remove eventlistener from `document`
+            if (NEW_EVENTSYSTEM) {
+                // one exeption: windowresize should listen to the window-object
+                if (eventName==='resize') {
+                    window.removeEventListener(eventName, _evCallback);
+                }
+                else {
+                    // important: set the third argument `true` so we listen to the capture-phase.
+                    DOCUMENT.removeEventListener(eventName, _evCallback, true);
+                }
+            }
+            else if (OLD_EVENTSYSTEM) {
+                // one exeption: windowresize should listen to the window-object
+                if (eventName==='resize') {
+                    window.detachEvent('on'+eventName, _evCallback);
+                }
+                else {
+                    DOCUMENT.detachEvent('on'+eventName, _evCallback);
+                }
+            }
+            delete DOMEvents[eventName];
+        }
+    };
+
     // Now a very tricky one:
     // Some browsers do an array.sort down-top instead of top-down.
     // In those cases we need another sortFn, for the position on an equal match should fall
     // behind instead of before (which is the case on top-down sort)
-    [1,2].sort(function(a, b) {
+    [1,2].sort(function(a /*, b */) {
         SORT || (SORT=(a===2) ? _sortFuncReversed : _sortFunc);
     });
 
     // Now we do some initialization in order to make DOM-events work:
 
-    // Notify when someone subscriber to an UI:* event
+    // Notify when someone subscribes to an UI:* event
     // if so: then we might need to define a customEvent for it:
     // alse define the specific DOM-methods that can be called on the eventobject: `stopPropagation` and `stopImmediatePropagation`
     Event.notify('UI:*', _setupDomListener, Event)
          ._setEventObjProperty('stopPropagation', function() {this.status.ok || (this.status.propagationStopped = this.target);})
          ._setEventObjProperty('stopImmediatePropagation', function() {this.status.ok || (this.status.immediatePropagationStopped = this.target);});
 
+    // Notify when someone detaches an UI:* event
+    // if so: then we might need to detach the native listener on `document`
+    Event.notifyDetach('UI:*', _teardownDomListener, Event);
 
     Event._sellist = [_domSelToFunc];
 

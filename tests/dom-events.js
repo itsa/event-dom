@@ -1,4 +1,5 @@
 /*global describe, it, before, after, afterEach */
+/*jshint unused:false */
 
 (function (window) {
 
