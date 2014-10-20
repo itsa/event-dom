@@ -46,6 +46,7 @@ var NAME = '[event-dom]: ',
     require('js-ext/lib/string.js');
     require('js-ext/lib/array.js');
     require('js-ext/lib/object.js');
+    require('polyfill/polyfill-base.js');
 
 module.exports = function (window) {
     var DOCUMENT = window.document,
@@ -53,9 +54,6 @@ module.exports = function (window) {
         OLD_EVENTSYSTEM = !NEW_EVENTSYSTEM && DOCUMENT.attachEvent,
         _bubbleIE8, _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor,
         _setupDomListener, _teardownDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc;
-
-    require('polyfill/lib/element.matchesselector.js');
-    require('polyfill/lib/node.contains.js');
 
     if (!window._ITSAmodules) {
         Object.defineProperty(window, '_ITSAmodules', {
