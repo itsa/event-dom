@@ -236,6 +236,11 @@ module.exports = function (window) {
             currentTarget: window.document,
             sourceTarget: node
         };
+        /**
+        * @event valuechange
+        * @param e.value {String} new value
+        * @param e.sourceTarget {Element} Element whare the valuechange occured
+        */
         Event.emit(node, 'UI:valuechange', e);
     };
 
