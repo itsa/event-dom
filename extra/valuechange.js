@@ -24,7 +24,7 @@
  * @class Event
  * @since 0.0.2
 */
-require('dom-ext');
+require('vdom');
 
 var NAME = '[event-valuechange]: ',
     VALUE = 'value',
@@ -45,7 +45,21 @@ var NAME = '[event-valuechange]: ',
 
 module.exports = function (window) {
 
+    if (!window._ITSAmodules) {
+        Object.defineProperty(window, '_ITSAmodules', {
+            configurable: false,
+            enumerable: false,
+            writable: false,
+            value: {} // `writable` is false means we cannot chance the value-reference, but we can change {} its members
+        });
+    }
+
+    if (window._ITSAmodules.EventValueChange) {
+        return window._ITSAmodules.EventValueChange; // EventValueChange was already created
+    }
+
     var Event = require('../event-dom.js')(window),
+    DOCUMENT = window.document,
     subscriberBlur,
     subscriberFocus,
 
@@ -60,11 +74,11 @@ module.exports = function (window) {
      */
     editableNode = function(node) {
         var editable;
-        if (node===window.document) {
+        if (node===DOCUMENT) {
             return false;
         }
-        console.log(NAME, 'editableNodes '+node.test('input, textarea, select') || ((editable=node.getAttr('contenteditable')) && (editable!=='false')));
-        return node.test('input, textarea, select') || ((editable=node.getAttr('contenteditable')) && (editable!=='false'));
+        console.log(NAME, 'editableNodes '+DOCUMENT.test(node, 'input, textarea, select') || ((editable=node.getAttr('contenteditable')) && (editable!=='false')));
+        return DOCUMENT.test(node, 'input, textarea, select') || ((editable=node.getAttr('contenteditable')) && (editable!=='false'));
     },
 
 
@@ -124,7 +138,7 @@ module.exports = function (window) {
         // create only after subscribing to the `hover`-event
         subscriberBlur = Event.after('blur', endFocus);
         subscriberFocus = Event.after('focus', startFocus);
-        startFocus({target: window.document.activeElement});
+        startFocus({target: DOCUMENT.activeElement});
     },
 
 
@@ -182,7 +196,7 @@ module.exports = function (window) {
         console.log(NAME, 'checkChanged');
         var node = e.target;
         // because of delegating all matched HtmlElements come along: only check the node that has focus:
-        if (window.document.activeElement!==node) {
+        if (DOCUMENT.activeElement!==node) {
             return;
         }
         var prevData = node.getData(DATA_KEY),
@@ -190,7 +204,7 @@ module.exports = function (window) {
             currentData = editable ? node.innerHTML : node[VALUE];
         if (currentData!==prevData.prevVal) {
             console.log(NAME, 'checkChanged --> value has been changed');
-            window.document._emitVC(node, currentData);
+            DOCUMENT._emitVC(node, currentData);
             prevData.prevVal = currentData;
         }
     },
@@ -211,7 +225,7 @@ module.exports = function (window) {
             subscriberBlur.detach();
             subscriberFocus.detach();
             // also stop any possible action/listeners to a current element:
-            endFocus({target: window.document.activeElement});
+            endFocus({target: DOCUMENT.activeElement});
             // reinit notifier, because it is a one-time notifier:
             Event.notify('UI:valuechange', setupValueChange, Event, true);
         }
@@ -229,11 +243,11 @@ module.exports = function (window) {
      * @private
      * @since 0.0.1
      */
-    window.document._emitVC = function(node, value) {
+    DOCUMENT._emitVC = function(node, value) {
         console.log(NAME, 'document._emitVC');
         var e = {
             value: value,
-            currentTarget: window.document,
+            currentTarget: DOCUMENT,
             sourceTarget: node
         };
         /**
@@ -243,6 +257,8 @@ module.exports = function (window) {
         */
         Event.emit(node, 'UI:valuechange', e);
     };
+
+    window._ITSAmodules.EventValueChange = Event;
 
     return Event;
 };

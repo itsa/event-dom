@@ -123,6 +123,8 @@ module.exports = function (window) {
             // this stage is runned when the event happens
             console.log(NAME, '_domSelToFunc inside filter. selector: '+selector);
             var node = e.target,
+                vnode = node.vnode,
+                character1 = selector.substr(1),
                 match = false;
             // e.target is the most deeply node in the dom-tree that caught the event
             // our listener uses `selector` which might be a node higher up the tree.
@@ -130,15 +132,31 @@ module.exports = function (window) {
             // note that e.currentTarget will always be `document` --> we're not interested in that
             // also, we don't check for `node`, but for node.matchesSelector: the highest level `document`
             // is not null, yet it doesn;t have .matchesSelector so it would fail
-            while (node.matchesSelector && !match) {
-                console.log(NAME, '_domSelToFunc inside filter check match');
-                match = byExactId ? (node.id===selector.substr(1)) : node.matchesSelector(selector);
-                // if there is a match, then set
-                // e.target to the target that matches the selector
-                if (match && !outsideEvent) {
-                    subscriber.t = node;
+            if (vnode) {
+                // we go through the vdom
+                while (vnode && !match) {
+                    console.log(NAME, '_domSelToFunc inside filter check match using the vdom');
+                    match = byExactId ? (vnode.id===character1) : vnode.matchesSelector(selector);
+                    // if there is a match, then set
+                    // e.target to the target that matches the selector
+                    if (match && !outsideEvent) {
+                        subscriber.t = vnode.domNode;
+                    }
+                    vnode = vnode.vParent;
                 }
-                node = node.parentNode;
+            }
+            else {
+                // we go through the dom
+                while (node.matchesSelector && !match) {
+                    console.log(NAME, '_domSelToFunc inside filter check match using the dom');
+                    match = byExactId ? (node.id===character1) : node.matchesSelector(selector);
+                    // if there is a match, then set
+                    // e.target to the target that matches the selector
+                    if (match && !outsideEvent) {
+                        subscriber.t = node;
+                    }
+                    node = node.parentNode;
+                }
             }
             console.log(NAME, '_domSelToFunc filter returns '+(!outsideEvent ? match : !match));
             return !outsideEvent ? match : !match;
