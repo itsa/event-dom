@@ -51,7 +51,7 @@ var NAME = '[event-dom]: ',
 
 module.exports = function (window) {
     var DOCUMENT = window.document,
-        _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor,
+        _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor, _setupEvents,
         _setupDomListener, _teardownDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc;
 
     if (!window._ITSAmodules) {
@@ -377,7 +377,7 @@ module.exports = function (window) {
             return;
         }
 
-        // one exeption: windowresize should listen to the window-object
+        // one exception: windowresize should listen to the window-object
         if (eventName==='resize') {
             window.addEventListener(eventName, _evCallback);
         }
@@ -387,6 +387,12 @@ module.exports = function (window) {
         }
         DOMEvents[eventName] = true;
         outsideEvent && (DOMEvents[eventName+OUTSIDE]=true);
+    };
+
+    _setupEvents = function() {
+        Event.before('click', function(e) {
+            e.preventDefault();
+        }, '.pure-button-disabled, button[disabled]');
     };
 
     /*
@@ -463,6 +469,8 @@ module.exports = function (window) {
     Event.notifyDetach('UI:*', _teardownDomListener, Event);
 
     Event._sellist = [_domSelToFunc];
+
+    _setupEvents();
 
     // Event._domCallback is the only method that is added to Event.
     // We need to do this, because `event-mobile` needs access to the same method.
