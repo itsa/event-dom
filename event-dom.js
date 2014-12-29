@@ -226,7 +226,7 @@ module.exports = function (window) {
         eventobject.status.halted && e.stopPropagation && e.stopPropagation();
         // now we might need to preventDefault the original event.
         // be carefull though: not all gesture events have e.preventDefault
-        if ((eventobject.status.halted || eventobject.status.defaultPrevented) && e.preventDefault) {
+        if ((eventobject.status.halted || eventobject.status.defaultPrevented || eventobject.status.defaultPreventedContinue) && e.preventDefault) {
             e.preventDefault();
         }
 
