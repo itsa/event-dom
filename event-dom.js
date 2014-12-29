@@ -22,7 +22,6 @@ var NAME = '[event-dom]: ',
     Event = require('event'),
     later = require('utils').later,
     OUTSIDE = 'outside',
-    REGEXP_UI = /^UI:/,
     REGEXP_NODE_ID = /^#\S+$/,
     REGEXP_EXTRACT_NODE_ID = /#(\S+)/,
     REGEXP_UI_OUTSIDE = /^.+outside$/,
@@ -44,15 +43,16 @@ var NAME = '[event-dom]: ',
     */
     DOMEvents = {};
 
+    require('vdom');
+    require('js-ext/lib/string.js');
+    require('js-ext/lib/array.js');
+    require('js-ext/lib/object.js');
+    require('polyfill/polyfill-base.js');
+
 module.exports = function (window) {
     var DOCUMENT = window.document,
-        NEW_EVENTSYSTEM = DOCUMENT.addEventListener,
-        OLD_EVENTSYSTEM = !NEW_EVENTSYSTEM && DOCUMENT.attachEvent,
-        DOM_Events, _bubbleIE8, _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor,
-        _setupDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc;
-
-    require('polyfill/lib/element.matchesselector.js')(window);
-    require('polyfill/lib/node.contains.js')(window);
+        _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor, _setupEvents,
+        _setupDomListener, _teardownDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc;
 
     if (!window._ITSAmodules) {
         Object.defineProperty(window, '_ITSAmodules', {
@@ -66,42 +66,6 @@ module.exports = function (window) {
     if (window._ITSAmodules.EventDom) {
         return Event; // Event was already extended
     }
-
-    /*
-     * Polyfill for bubbling the `focus` and `blur` events in IE8.
-     *
-     * IE>8 we can use delegating on ALL events, because we use the capture-phase.
-     * Unfortunatly this cannot be done with IE<9. But we can simulate focus and blur
-     * delegation bu monitoring the focussed node.
-     *
-     * This means the IE<9 will miss the events: 'error', 'load', 'resize' and 'scroll'
-     * However, if you need one of these to work in IE8, then you can `activate` this event on the
-     * single node that you want to minotor. You activate it and then you use the eventsystem
-     * like like you are used to. (delegated). Only activated nodes will bubble their non-bubbling events up
-     * Activation is not done manually, but automaticly: whenever there is a subscriber on a node (or an id-selector)
-     * and IE<9 is the environment, then a listener for that node is set up.
-     * Side-effect is that we cannot controll when the listener isn't needed anymore. This might lead to memory-leak - but its IE<9...
-     *
-     * @method _bubbleIE8
-     * @private
-     * @since 0.0.1
-     */
-    _bubbleIE8 = function() {
-        console.log(NAME, '_bubbleIE8');
-        // we wil emulate focus and blur by subscribing to the keyup and mouseup events:
-        // when they happen, we'll ask for the current focussed Node --> if there is a
-        // change compared to the previous, then we fire both a blur and a focus-event
-        Event._focussedNode = DOCUMENT.activeElement;
-        Event.after(['keyup', 'mouseup'], function(e) {
-            var newFocussed = DOCUMENT.activeElement,
-                prevFocussed = Event._focussedNode;
-            if (prevFocussed !== newFocussed) {
-                Event._focussedNode = newFocussed;
-                Event.emit(prevFocussed, 'UI:blur', e);
-                Event.emit(newFocussed, 'UI:focus', e);
-            }
-        });
-    };
 
     /*
      * Transfprms the selector to a valid function
@@ -159,6 +123,8 @@ module.exports = function (window) {
             // this stage is runned when the event happens
             console.log(NAME, '_domSelToFunc inside filter. selector: '+selector);
             var node = e.target,
+                vnode = node.vnode,
+                character1 = selector.substr(1),
                 match = false;
             // e.target is the most deeply node in the dom-tree that caught the event
             // our listener uses `selector` which might be a node higher up the tree.
@@ -166,15 +132,31 @@ module.exports = function (window) {
             // note that e.currentTarget will always be `document` --> we're not interested in that
             // also, we don't check for `node`, but for node.matchesSelector: the highest level `document`
             // is not null, yet it doesn;t have .matchesSelector so it would fail
-            while (node.matchesSelector && !match) {
-                console.log(NAME, '_domSelToFunc inside filter check match');
-                match = byExactId ? (node.id===selector.substr(1)) : node.matchesSelector(selector);
-                // if there is a match, then set
-                // e.target to the target that matches the selector
-                if (match && !outsideEvent) {
-                    subscriber.t = node;
+            if (vnode) {
+                // we go through the vdom
+                while (vnode && !match) {
+                    console.log(NAME, '_domSelToFunc inside filter check match using the vdom');
+                    match = byExactId ? (vnode.id===character1) : vnode.matchesSelector(selector);
+                    // if there is a match, then set
+                    // e.target to the target that matches the selector
+                    if (match && !outsideEvent) {
+                        subscriber.t = vnode.domNode;
+                    }
+                    vnode = vnode.vParent;
                 }
-                node = node.parentNode;
+            }
+            else {
+                // we go through the dom
+                while (node.matchesSelector && !match) {
+                    console.log(NAME, '_domSelToFunc inside filter check match using the dom');
+                    match = byExactId ? (node.id===character1) : node.matchesSelector(selector);
+                    // if there is a match, then set
+                    // e.target to the target that matches the selector
+                    if (match && !outsideEvent) {
+                        subscriber.t = node;
+                    }
+                    node = node.parentNode;
+                }
             }
             console.log(NAME, '_domSelToFunc filter returns '+(!outsideEvent ? match : !match));
             return !outsideEvent ? match : !match;
@@ -286,10 +268,15 @@ module.exports = function (window) {
         saveConcat(named_wildcard_subs);
         saveConcat(wildcard_wildcard_subs);
         if (subscribers.length>0) {
-            subscribers = subscribers.filter(function(subscriber) {
-                console.log(NAME, 'filtercheck for subscriber');
-                return (!subscriber.f || subscriber.f.call(subscriber.o, e));
-            });
+            subscribers = function(array, testFunc) {
+                // quickest way to filter an array: see http://jsperf.com/array-filter-performance/4
+                var filtered = array.slice(0), i;
+                for (i=array.length-1; i>=0; i--) {
+                    console.log(NAME, 'filtercheck for subscriber');
+                    testFunc(array[i]) || filtered.splice(i, 1);
+                }
+                return filtered;
+            }(subscribers, function(subscriber) {return (!subscriber.f || subscriber.f.call(subscriber.o, e));});
             if (subscribers.length>0) {
                 _findCurrentTargets(subscribers);
                 // sorting, based upon the sortFn
@@ -390,27 +377,22 @@ module.exports = function (window) {
             return;
         }
 
-        if (NEW_EVENTSYSTEM) {
-            // one exeption: windowresize should listen to the window-object
-            if (eventName==='resize') {
-                window.addEventListener(eventName, _evCallback);
-            }
-            else {
-                // important: set the third argument `true` so we listen to the capture-phase.
-                DOCUMENT.addEventListener(eventName, _evCallback, true);
-            }
+        // one exception: windowresize should listen to the window-object
+        if (eventName==='resize') {
+            window.addEventListener(eventName, _evCallback);
         }
-        else if (OLD_EVENTSYSTEM) {
-            // one exeption: windowresize should listen to the window-object
-            if (eventName==='resize') {
-                window.attachEvent('on'+eventName, _evCallback);
-            }
-            else {
-                DOCUMENT.attachEvent('on'+eventName, _evCallback);
-            }
+        else {
+            // important: set the third argument `true` so we listen to the capture-phase.
+            DOCUMENT.addEventListener(eventName, _evCallback, true);
         }
         DOMEvents[eventName] = true;
         outsideEvent && (DOMEvents[eventName+OUTSIDE]=true);
+    };
+
+    _setupEvents = function() {
+        Event.before('click', function(e) {
+            e.preventDefault();
+        }, '.pure-button-disabled, button[disabled]');
     };
 
     /*
@@ -437,25 +419,58 @@ module.exports = function (window) {
         return (subscriberOne.t || subscriberOne.n).contains(subscriberTwo.t || subscriberTwo.n) ? 1 : -1;
     };
 
+    /*
+     * Removes DOM-eventsubscribers from document when they are no longer needed.
+     *
+     * @method _teardownDomListener
+     * @param customEvent {String} the customEvent that is transported to the eventsystem
+     * @private
+     * @since 0.0.2
+     */
+    _teardownDomListener = function(customEvent) {
+        var customEventWithoutOutside = customEvent.endsWith(OUTSIDE) ? customEvent.substr(0, customEvent.length-7) : customEvent,
+            eventSplitted = customEventWithoutOutside.split(':'),
+            eventName = eventSplitted[1];
+
+        if (!Event._subs[customEventWithoutOutside] && !Event._subs[customEventWithoutOutside+OUTSIDE]) {
+            console.log(NAME, '_teardownDomListener '+customEvent);
+            // remove eventlistener from `document`
+            // one exeption: windowresize should listen to the window-object
+            if (eventName==='resize') {
+                window.removeEventListener(eventName, _evCallback);
+            }
+            else {
+                // important: set the third argument `true` so we listen to the capture-phase.
+                DOCUMENT.removeEventListener(eventName, _evCallback, true);
+            }
+            delete DOMEvents[eventName];
+        }
+    };
+
     // Now a very tricky one:
     // Some browsers do an array.sort down-top instead of top-down.
     // In those cases we need another sortFn, for the position on an equal match should fall
     // behind instead of before (which is the case on top-down sort)
-    [1,2].sort(function(a, b) {
+    [1,2].sort(function(a /*, b */) {
         SORT || (SORT=(a===2) ? _sortFuncReversed : _sortFunc);
     });
 
     // Now we do some initialization in order to make DOM-events work:
 
-    // Notify when someone subscriber to an UI:* event
+    // Notify when someone subscribes to an UI:* event
     // if so: then we might need to define a customEvent for it:
     // alse define the specific DOM-methods that can be called on the eventobject: `stopPropagation` and `stopImmediatePropagation`
     Event.notify('UI:*', _setupDomListener, Event)
          ._setEventObjProperty('stopPropagation', function() {this.status.ok || (this.status.propagationStopped = this.target);})
          ._setEventObjProperty('stopImmediatePropagation', function() {this.status.ok || (this.status.immediatePropagationStopped = this.target);});
 
+    // Notify when someone detaches an UI:* event
+    // if so: then we might need to detach the native listener on `document`
+    Event.notifyDetach('UI:*', _teardownDomListener, Event);
 
     Event._sellist = [_domSelToFunc];
+
+    _setupEvents();
 
     // Event._domCallback is the only method that is added to Event.
     // We need to do this, because `event-mobile` needs access to the same method.
@@ -475,9 +490,6 @@ module.exports = function (window) {
     Event._domCallback = function(e) {
         _evCallback(e);
     };
-
-    // next: bubble-polyfill for IE8:
-    OLD_EVENTSYSTEM && _bubbleIE8();
 
     // store module:
     window._ITSAmodules.EventDom = Event;

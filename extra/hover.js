@@ -29,6 +29,20 @@
 var NAME = '[event-hover]: ';
 
 module.exports = function (window) {
+
+    if (!window._ITSAmodules) {
+        Object.defineProperty(window, '_ITSAmodules', {
+            configurable: false,
+            enumerable: false,
+            writable: false,
+            value: {} // `writable` is false means we cannot chance the value-reference, but we can change {} its members
+        });
+    }
+
+    if (window._ITSAmodules.EventHover) {
+        return window._ITSAmodules.EventHover; // EventHover was already created
+    }
+
     var Event = require('../event-dom.js')(window),
 
     subscriber,
@@ -47,8 +61,8 @@ module.exports = function (window) {
         subscriber = Event.after('mouseover', function(e) {
             console.log(NAME, 'setupHover: setting up mouseover event');
             var node = e.target;
-            e.hover = new Promise(function(fulfill, reject) {
-                Event.after(
+            e.hover = new Promise(function(fulfill) {
+                Event.onceAfter(
                     'mouseout',
                     function(e) {
                         fulfill(e.relatedTarget);
@@ -83,6 +97,8 @@ module.exports = function (window) {
 
     Event.notify('UI:hover', setupHover, Event, true);
     Event.notifyDetach('UI:hover', teardownHover, Event);
+
+    window._ITSAmodules.EventHover = Event;
 
     return Event;
 };
