@@ -25,6 +25,8 @@ var NAME = '[event-dom]: ',
     REGEXP_NODE_ID = /^#\S+$/,
     REGEXP_EXTRACT_NODE_ID = /#(\S+)/,
     REGEXP_UI_OUTSIDE = /^.+outside$/,
+    TIME_BTN_PRESSED = 200,
+    PURE_BUTTON_ACTIVE = 'pure-button-active',
 
     /*
      * Internal hash containing all DOM-events that are listened for (at `document`).
@@ -390,9 +392,41 @@ module.exports = function (window) {
     };
 
     _setupEvents = function() {
-        Event.before('click', function(e) {
+
+        // make sure disabled buttons don't work:
+        Event.before(['click', 'tap'], function(e) {
             e.preventDefault();
         }, '.pure-button-disabled, button[disabled]');
+
+        // make sure that a focussed button which recieves an keypress also fires the `tap`-event
+        // note: the `click`-event will always be fired by the browser
+        Event.before(
+            'keydown',
+            function(e) {
+                e._buttonPressed = true;
+                Event.emit(e.target, 'UI:tap', e);
+            },
+            function(e) {
+                var keyCode = e.keyCode;
+                return (e.target.getTagName()==='BUTTON') && ((keyCode===13) || (keyCode===32));
+            }
+        );
+
+        // make sure that a focussed button which recieves an keypress also fires the `tap`-event
+        // note: the `click`-event will always be fired by the browser
+        Event.after(
+            'tap',
+            function(e) {
+                var buttonNode = e.target;
+                if (e._buttonPressed) {
+                    buttonNode.setClass(PURE_BUTTON_ACTIVE);
+                    // even if the node isn't in the DOM, we can still try to manipulate it:
+                    // the vdom makes sure no errors occur when the node is already removed
+                    later(buttonNode.removeClass.bind(buttonNode, PURE_BUTTON_ACTIVE), TIME_BTN_PRESSED);
+                }
+            }
+        );
+
     };
 
     /*
