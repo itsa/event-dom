@@ -24,7 +24,9 @@
  * @class Event
  * @since 0.0.2
 */
+
 require('vdom');
+require('js-ext/lib/object.js');
 
 var NAME = '[event-valuechange]: ',
     VALUE = 'value',
@@ -45,7 +47,7 @@ var NAME = '[event-valuechange]: ',
 
 module.exports = function (window) {
 
-    window._ITSAmodules || window.protectedProp('_ITSAmodules', {});
+    window._ITSAmodules || Object.protectedProp(window, '_ITSAmodules', {});
 
     if (window._ITSAmodules.EventValueChange) {
         return window._ITSAmodules.EventValueChange; // EventValueChange was already created

@@ -69,7 +69,7 @@ module.exports = function (window) {
 
     require('vdom')(window);
 
-    window._ITSAmodules || window.protectedProp('_ITSAmodules', {});
+    window._ITSAmodules || Object.protectedProp(window, '_ITSAmodules', {});
 
     if (window._ITSAmodules.EventDom) {
         return Event; // Event was already extended
