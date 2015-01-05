@@ -45,7 +45,6 @@ var NAME = '[event-dom]: ',
     */
     DOMEvents = {};
 
-    require('vdom');
     require('js-ext/lib/string.js');
     require('js-ext/lib/array.js');
     require('js-ext/lib/object.js');
@@ -56,14 +55,9 @@ module.exports = function (window) {
         _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor, _setupEvents,
         _setupDomListener, _teardownDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc;
 
-    if (!window._ITSAmodules) {
-        Object.defineProperty(window, '_ITSAmodules', {
-            configurable: false,
-            enumerable: false,
-            writable: false,
-            value: {} // `writable` is false means we cannot chance the value-reference, but we can change {} its members
-        });
-    }
+    require('vdom')(window);
+
+    window._ITSAmodules || window.protectedProp('_ITSAmodules', {});
 
     if (window._ITSAmodules.EventDom) {
         return Event; // Event was already extended
@@ -85,7 +79,7 @@ module.exports = function (window) {
         Event._sellist.some(function(selFn) {
             return selFn(customEvent, subscriber);
         });
-    },
+    };
 
     /*
      * Creates a filterfunction out of a css-selector. To be used for catching any dom-element, without restrictions
@@ -106,7 +100,7 @@ module.exports = function (window) {
         // this stage is runned during subscription
         var outsideEvent = REGEXP_UI_OUTSIDE.test(customEvent),
             selector = subscriber.f,
-            nodeid, byExactId;
+            nodeid, byExactId, findParent;
 
         console.log(NAME, '_domSelToFunc type of selector = '+typeof selector);
         // note: selector could still be a function: in case another subscriber
@@ -115,6 +109,16 @@ module.exports = function (window) {
             subscriber.n || (subscriber.n=DOCUMENT);
             return true;
         }
+
+        findParent = function(treeBeforeRemoved, vnode) {
+            var len = treeBeforeRemoved.length,
+                domNode = vnode.domNode,
+                i, found;
+            for (i=0; (i<len-2) && (found===undefined); i++) {
+                (treeBeforeRemoved[i].domNode===domNode) && (found=i+1);
+            }
+            return (found!==undefined) ? treeBeforeRemoved[found] : null;
+        };
 
         nodeid = selector.match(REGEXP_EXTRACT_NODE_ID);
         nodeid ? (subscriber.nId=nodeid[1]) : (subscriber.n=DOCUMENT);
@@ -126,6 +130,7 @@ module.exports = function (window) {
             console.log(NAME, '_domSelToFunc inside filter. selector: '+selector);
             var node = e.target,
                 vnode = node.vnode,
+                treeBeforeRemoved = e._treeBeforeRemoved, // in case of `noderemove`-event
                 character1 = selector.substr(1),
                 match = false;
             // e.target is the most deeply node in the dom-tree that caught the event
@@ -144,7 +149,7 @@ module.exports = function (window) {
                     if (match && !outsideEvent) {
                         subscriber.t = vnode.domNode;
                     }
-                    vnode = vnode.vParent;
+                    vnode = vnode.vParent || (treeBeforeRemoved && findParent(treeBeforeRemoved, vnode));
                 }
             }
             else {
@@ -505,6 +510,17 @@ module.exports = function (window) {
     Event._sellist = [_domSelToFunc];
 
     _setupEvents();
+
+    // making HTMLElement to be able to emit using event-emitter:
+    (function(HTMLElementPrototype) {
+        HTMLElementPrototype.merge(Event.Emitter('UI'));
+    }(window.HTMLElement.prototype));
+
+    // Note: window.document has no prototype
+    DOCUMENT.suppressMutationEvents = function(suppress) {
+        this._suppressMutationEvents = suppress;
+    };
+
 
     // Event._domCallback is the only method that is added to Event.
     // We need to do this, because `event-mobile` needs access to the same method.
