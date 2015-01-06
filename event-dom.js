@@ -39,6 +39,7 @@ var NAME = '[event-dom]: ',
     EV_ATTRIBUTE_REMOVED = UI+ATTRIBUTE+REMOVE,
     EV_ATTRIBUTE_CHANGED = UI+ATTRIBUTE+CHANGE,
     EV_ATTRIBUTE_INSERTED = UI+ATTRIBUTE+INSERT,
+    mutationEventsDefined = false,
 
     /*
      * Internal hash containing all DOM-events that are listened for (at `document`).
@@ -439,6 +440,15 @@ module.exports = function (window) {
 
     _setupMutationListener = function() {
         DOCUMENT.hasMutationSubs = true;
+        if (!mutationEventsDefined) {
+            Event.defineEvent(EV_REMOVED).unPreventable().noRender();
+            Event.defineEvent(EV_INSERTED).unPreventable().noRender();
+            Event.defineEvent(EV_CONTENT_CHANGE).unPreventable().noRender();
+            Event.defineEvent(EV_ATTRIBUTE_REMOVED).unPreventable().noRender();
+            Event.defineEvent(EV_ATTRIBUTE_CHANGED).unPreventable().noRender();
+            Event.defineEvent(EV_ATTRIBUTE_INSERTED).unPreventable().noRender();
+            mutationEventsDefined = true;
+        }
     };
 
     /*
