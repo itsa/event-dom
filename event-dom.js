@@ -115,19 +115,21 @@ module.exports = function (window) {
         // this stage is runned during subscription
         var outsideEvent = REGEXP_UI_OUTSIDE.test(customEvent),
             selector = subscriber.f,
+            context = subscriber.o,
+            isCustomElement = subscriber.o._isCustomElement,
             nodeid, byExactId;
 
         console.log(NAME, '_domSelToFunc type of selector = '+typeof selector);
         // note: selector could still be a function: in case another subscriber
         // already changed it.
-        if (!selector || (typeof selector === 'function')) {
-            subscriber.n || (subscriber.n=DOCUMENT);
+        if ((!selector && !isCustomElement) || (typeof selector === 'function')) {
+            subscriber.n || (subscriber.n = isCustomElement ? context : DOCUMENT);
             return true;
         }
+        selector || (selector='');
 
         nodeid = selector.match(REGEXP_EXTRACT_NODE_ID);
-        nodeid ? (subscriber.nId=nodeid[1]) : (subscriber.n=DOCUMENT);
-
+        nodeid ? (subscriber.nId=nodeid[1]) : (subscriber.n=isCustomElement ? context : DOCUMENT);
         byExactId = REGEXP_NODE_ID.test(selector);
 
         subscriber.f = function(e) {
@@ -135,38 +137,47 @@ module.exports = function (window) {
             console.log(NAME, '_domSelToFunc inside filter. selector: '+selector);
             var node = e.target,
                 vnode = node.vnode,
-                character1 = selector.substr(1),
+                character1 = selector && selector.substr(1),
                 match = false;
-            // e.target is the most deeply node in the dom-tree that caught the event
-            // our listener uses `selector` which might be a node higher up the tree.
-            // we will reset e.target to this node (if there is a match)
-            // note that e.currentTarget will always be `document` --> we're not interested in that
-            // also, we don't check for `node`, but for node.matchesSelector: the highest level `document`
-            // is not null, yet it doesn;t have .matchesSelector so it would fail
-            if (vnode) {
-                // we go through the vdom
-                while (vnode && !match) {
-                    console.log(NAME, '_domSelToFunc inside filter check match using the vdom');
-                    match = byExactId ? (vnode.id===character1) : vnode.matchesSelector(selector);
-                    // if there is a match, then set
-                    // e.target to the target that matches the selector
-                    if (match && !outsideEvent) {
-                        subscriber.t = vnode.domNode;
-                    }
-                    vnode = vnode.vParent;
+            if (!subscriber.o._isCustomElement || subscriber.o.contains(node)) {
+                if (selector==='') {
+                    match = true;
                 }
-            }
-            else {
-                // we go through the dom
-                while (node.matchesSelector && !match) {
-                    console.log(NAME, '_domSelToFunc inside filter check match using the dom');
-                    match = byExactId ? (node.id===character1) : node.matchesSelector(selector);
-                    // if there is a match, then set
-                    // e.target to the target that matches the selector
-                    if (match && !outsideEvent) {
-                        subscriber.t = node;
+                else {
+                    // e.target is the most deeply node in the dom-tree that caught the event
+                    // our listener uses `selector` which might be a node higher up the tree.
+                    // we will reset e.target to this node (if there is a match)
+                    // note that e.currentTarget will always be `document` --> we're not interested in that
+                    // also, we don't check for `node`, but for node.matchesSelector: the highest level `document`
+                    // is not null, yet it doesn;t have .matchesSelector so it would fail
+                    if (vnode) {
+                        // we go through the vdom
+                        if (!vnode.removedFromDOM) {
+                            while (vnode && !match) {
+                                console.log(NAME, '_domSelToFunc inside filter check match using the vdom');
+                                match = byExactId ? (vnode.id===character1) : vnode.matchesSelector(selector);
+                                // if there is a match, then set
+                                // e.target to the target that matches the selector
+                                if (match && !outsideEvent) {
+                                    subscriber.t = vnode.domNode;
+                                }
+                                vnode = vnode.vParent;
+                            }
+                        }
                     }
-                    node = node.parentNode;
+                    else {
+                        // we go through the dom
+                        while (node.matchesSelector && !match) {
+                            console.log(NAME, '_domSelToFunc inside filter check match using the dom');
+                            match = byExactId ? (node.id===character1) : node.matchesSelector(selector);
+                            // if there is a match, then set
+                            // e.target to the target that matches the selector
+                            if (match && !outsideEvent) {
+                                subscriber.t = node;
+                            }
+                            node = node.parentNode;
+                        }
+                    }
                 }
             }
             console.log(NAME, '_domSelToFunc filter returns '+(!outsideEvent ? match : !match));
@@ -543,6 +554,7 @@ module.exports = function (window) {
     // making HTMLElement to be able to emit using event-emitter:
     (function(HTMLElementPrototype) {
         HTMLElementPrototype.merge(Event.Emitter('UI'));
+        HTMLElementPrototype._isCustomElement = true;
     }(window.HTMLElement.prototype));
 
 
