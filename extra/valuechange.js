@@ -29,6 +29,7 @@ require('vdom');
 require('js-ext/lib/object.js');
 
 var NAME = '[event-valuechange]: ',
+    createHashMap = require('js-ext/extra/hashmap.js').createMap,
     VALUE = 'value',
     DATA_KEY = 'valueChange',
     UTILS = require('utils'),
@@ -47,7 +48,7 @@ var NAME = '[event-valuechange]: ',
 
 module.exports = function (window) {
 
-    window._ITSAmodules || Object.protectedProp(window, '_ITSAmodules', {});
+    window._ITSAmodules || Object.protectedProp(window, '_ITSAmodules', createHashMap());
 
     if (window._ITSAmodules.EventValueChange) {
         return window._ITSAmodules.EventValueChange; // EventValueChange was already created
