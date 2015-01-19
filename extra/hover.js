@@ -26,13 +26,14 @@
 */
 
 
-var NAME = '[event-hover]: ';
+var NAME = '[event-hover]: ',
+    createHashMap = require('js-ext/extra/hashmap.js').createMap;
 
 require('js-ext/lib/object.js');
 
 module.exports = function (window) {
 
-    window._ITSAmodules || Object.protectedProp(window, '_ITSAmodules', {});
+    window._ITSAmodules || Object.protectedProp(window, '_ITSAmodules', createHashMap());
 
     if (window._ITSAmodules.EventHover) {
         return window._ITSAmodules.EventHover; // EventHover was already created

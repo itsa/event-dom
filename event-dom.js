@@ -21,6 +21,7 @@
 var NAME = '[event-dom]: ',
     Event = require('event'),
     laterSilent = require('utils').laterSilent,
+    createHashMap = require('js-ext/extra/hashmap.js').createMap,
     OUTSIDE = 'outside',
     REGEXP_NODE_ID = /^#\S+$/,
     REGEXP_EXTRACT_NODE_ID = /#(\S+)/,
@@ -70,7 +71,7 @@ module.exports = function (window) {
 
     require('vdom')(window);
 
-    window._ITSAmodules || Object.protectedProp(window, '_ITSAmodules', {});
+    window._ITSAmodules || Object.protectedProp(window, '_ITSAmodules', createHashMap());
 
     if (window._ITSAmodules.EventDom) {
         return Event; // Event was already extended
