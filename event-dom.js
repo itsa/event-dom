@@ -234,13 +234,13 @@ module.exports = function (window) {
         // eventobject = eventobject from our Eventsystem, which get returned by calling `emit()`
 
         subscribers = _getSubscribers(e, true, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs);
-        eventobject = Event._emit(e.target, customEvent, e, subscribers, [], _preProcessor);
+        eventobject = Event._emit(e.target, customEvent, e, subscribers, [], _preProcessor, false, true);
 
         // now check outside subscribers
         subsOutside = allSubscribers[customEvent+OUTSIDE];
         wildcard_named_subsOutside = allSubscribers['*:'+eventName+OUTSIDE];
         subscribers = _getSubscribers(e, true, subsOutside, wildcard_named_subsOutside);
-        eventobjectOutside = Event._emit(e.target, customEvent+OUTSIDE, e, subscribers, [], _preProcessor);
+        eventobjectOutside = Event._emit(e.target, customEvent+OUTSIDE, e, subscribers, [], _preProcessor, false, true);
 
         // if eventobject was preventdefaulted or halted: take appropriate action on
         // the original dom-event. Note: only the original event can caused this, not the outsideevent
