@@ -198,7 +198,7 @@ module.exports = function (window) {
         subscribers.forEach(
             function(subscriber) {
                 console.log(NAME, '_findCurrentTargets for single subscriber. nId: '+subscriber.nId);
-                subscriber.nId && (subscriber.n=DOCUMENT.getElementById(subscriber.nId));
+                subscriber.nId && (subscriber.n=DOCUMENT.getElementById(subscriber.nId, true));
             }
         );
     };
