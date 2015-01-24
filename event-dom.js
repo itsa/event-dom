@@ -120,7 +120,7 @@ module.exports = function (window) {
         var outsideEvent = REGEXP_UI_OUTSIDE.test(customEvent),
             selector = subscriber.f,
             context = subscriber.o,
-            isCustomElement = subscriber.o._isCustomElement,
+            isCustomElement = subscriber.o.vnode && subscriber.o.vnode.isItag,
             nodeid, byExactId;
 
         console.log(NAME, '_domSelToFunc type of selector = '+typeof selector);
@@ -143,7 +143,7 @@ module.exports = function (window) {
                 vnode = node.vnode,
                 character1 = selector && selector.substr(1),
                 match = false;
-            if (!subscriber.o._isCustomElement || subscriber.o.contains(node)) {
+            if (!isCustomElement || subscriber.o.contains(node)) {
                 if (selector==='') {
                     match = true;
                 }
@@ -582,14 +582,7 @@ module.exports = function (window) {
     // making HTMLElement to be able to emit using event-emitter:
     (function(HTMLElementPrototype) {
         HTMLElementPrototype.merge(Event.Emitter('UI'));
-        HTMLElementPrototype._isCustomElement = true;
     }(window.HTMLElement.prototype));
-
-
-
-
-
-
 
 
     // Notify when someone subscribes to an UI:* event
@@ -605,11 +598,6 @@ module.exports = function (window) {
     DOCUMENT.suppressMutationEvents = function(suppress) {
         this._suppressMutationEvents = suppress;
     };
-
-
-
-
-
 
     // Event._domCallback is the only method that is added to Event.
     // We need to do this, because `event-mobile` needs access to the same method.
