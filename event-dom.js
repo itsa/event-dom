@@ -34,6 +34,9 @@ var NAME = '[event-dom]: ',
     INSERT = 'insert',
     CHANGE = 'change',
     ATTRIBUTE = 'attribute',
+    CLICK = 'click',
+    RIGHTCLICK = 'right'+CLICK,
+    CENTERCLICK = 'center'+CLICK,
     EV_REMOVED = UI+NODE+REMOVE,
     EV_INSERTED = UI+NODE+INSERT,
     EV_CONTENT_CHANGE = UI+NODE+'content'+CHANGE,
@@ -216,10 +219,19 @@ module.exports = function (window) {
     _evCallback = function(e) {
         console.log(NAME, '_evCallback');
         var allSubscribers = Event._subs,
-            eventName = e.type,
-            customEvent = 'UI:'+eventName,
+            eType = e.type,
             eventobject, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs, subsOutside,
-            subscribers, eventobjectOutside, wildcard_named_subsOutside;
+            subscribers, eventobjectOutside, wildcard_named_subsOutside, customEvent, eventName, which;
+
+        eventName = eType;
+        // first: a `click` event might be needed to transformed into `rightclick`:
+        if (eventName===CLICK) {
+            which = e.which;
+            (which===2) && (eventName=CENTERCLICK);
+            (which===3) && (eventName=RIGHTCLICK);
+        }
+
+        customEvent = 'UI:'+eventName;
 
         subs = allSubscribers[customEvent];
         wildcard_named_subs = allSubscribers['*:'+eventName];
@@ -233,6 +245,7 @@ module.exports = function (window) {
         // e = eventobject from the DOM-event OR gesture-event
         // eventobject = eventobject from our Eventsystem, which get returned by calling `emit()`
 
+        // now so the work:
         subscribers = _getSubscribers(e, true, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs);
         eventobject = Event._emit(e.target, customEvent, e, subscribers, [], _preProcessor, false, true);
 
@@ -400,16 +413,17 @@ module.exports = function (window) {
             return;
         }
 
+        DOMEvents[eventName] = true;
+        outsideEvent && (DOMEvents[eventName+OUTSIDE]=true);
         // one exception: windowresize should listen to the window-object
         if (eventName==='resize') {
             window.addEventListener(eventName, _evCallback);
         }
         else {
+            ((eventName===RIGHTCLICK) || (eventName===CENTERCLICK)) && (eventName=CLICK);
             // important: set the third argument `true` so we listen to the capture-phase.
             DOCUMENT.addEventListener(eventName, _evCallback, true);
         }
-        DOMEvents[eventName] = true;
-        outsideEvent && (DOMEvents[eventName+OUTSIDE]=true);
     };
 
     _setupEvents = function() {
@@ -498,9 +512,22 @@ module.exports = function (window) {
     _teardownDomListener = function(customEvent) {
         var customEventWithoutOutside = customEvent.endsWith(OUTSIDE) ? customEvent.substr(0, customEvent.length-7) : customEvent,
             eventSplitted = customEventWithoutOutside.split(':'),
-            eventName = eventSplitted[1];
+            eventName = eventSplitted[1],
+            stillInUse;
 
-        if (!Event._subs[customEventWithoutOutside] && !Event._subs[customEventWithoutOutside+OUTSIDE]) {
+        if ((customEventWithoutOutside===CLICK) || (customEventWithoutOutside===RIGHTCLICK) || (customEventWithoutOutside===CENTERCLICK)) {
+            stillInUse = Event._subs[CLICK] ||
+                         Event._subs[CLICK+OUTSIDE];
+                         Event._subs[RIGHTCLICK] ||
+                         Event._subs[RIGHTCLICK+OUTSIDE],
+                         Event._subs[CENTERCLICK] ||
+                         Event._subs[CENTERCLICK+OUTSIDE];
+            eventName = CLICK;
+        }
+        else {
+            stillInUse = Event._subs[customEventWithoutOutside] || Event._subs[customEventWithoutOutside+OUTSIDE];
+        }
+        if (!stillInUse) {
             console.log(NAME, '_teardownDomListener '+customEvent);
             // remove eventlistener from `document`
             // one exeption: windowresize should listen to the window-object
