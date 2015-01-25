@@ -120,7 +120,9 @@ module.exports = function (window) {
         var outsideEvent = REGEXP_UI_OUTSIDE.test(customEvent),
             selector = subscriber.f,
             context = subscriber.o,
-            isCustomElement = subscriber.o.vnode && subscriber.o.vnode.isItag,
+            vnode = subscriber.o.vnode,
+            isCustomElement = vnode && vnode.isItag,
+            isParcel = isCustomElement && (vnode.tag==='I-PARCEL'),
             nodeid, byExactId;
 
         console.log(NAME, '_domSelToFunc type of selector = '+typeof selector);
@@ -143,7 +145,7 @@ module.exports = function (window) {
                 vnode = node.vnode,
                 character1 = selector && selector.substr(1),
                 match = false;
-            if (!isCustomElement || subscriber.o.contains(node)) {
+            if (!isCustomElement || isParcel || subscriber.o.contains(node)) {
                 if (selector==='') {
                     match = true;
                 }
