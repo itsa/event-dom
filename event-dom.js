@@ -573,6 +573,17 @@ module.exports = function (window) {
          ._setEventObjProperty('stopPropagation', function() {this.status.ok || (this.status.propagationStopped = this.target);})
          ._setEventObjProperty('stopImmediatePropagation', function() {this.status.ok || (this.status.immediatePropagationStopped = this.target);});
 
+    // Notify when someone subscribes to any event at all --> we might need to transform the filterFn from a selector into a true fnction
+    // this is already done automaticly by _setupDomListener fo UI:* events
+    Event.notify('*:*', function(customEvent, subscriber) {
+        var eventSplitted = customEvent.split(':'),
+            emitterName = eventSplitted[0];
+        if ((emitterName!=='UI') && (typeof subscriber.f==='string')) {
+            // now transform the subscriber's filter from css-string into a filterfunction
+            _selToFunc(customEvent, subscriber);
+        }
+    }, Event);
+
     // Notify when someone detaches an UI:* event
     // if so: then we might need to detach the native listener on `document`
     Event.notifyDetach(UI+'*', _teardownDomListener, Event);
