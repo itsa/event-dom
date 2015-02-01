@@ -457,6 +457,7 @@ module.exports = function (window) {
                 var buttonNode = e.target;
                 if (e._buttonPressed) {
                     buttonNode.setClass(PURE_BUTTON_ACTIVE);
+                    e._noRender = true;
                     // even if the node isn't in the DOM, we can still try to manipulate it:
                     // the vdom makes sure no errors occur when the node is already removed
                     laterSilent(buttonNode.removeClass.bind(buttonNode, PURE_BUTTON_ACTIVE), TIME_BTN_PRESSED);
