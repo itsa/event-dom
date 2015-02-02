@@ -189,7 +189,7 @@ module.exports = function (window) {
             if (outsideEvent && !match) {
                 // there is a match for the outside-event:
                 // we need to set e.sourceTarget and e.target:
-                newTarget = document.getElement(selector, true);
+                newTarget = DOCUMENT.getElement(selector, true);
                 if (newTarget) {
                     e.sourceTarget = node;
                     subscriber.t = newTarget;
@@ -486,7 +486,7 @@ module.exports = function (window) {
             lastFocussed = e.target;
         });
 
-        Event.after('focus', function(e) {
+        Event.after('focus', function() {
             // DOCUMENT._activeElement is used with the patch for DOCUMENT.activeElement its getter
             DOCUMENT._activeElement = lastFocussed;
         });
