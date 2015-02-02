@@ -9,7 +9,7 @@
         should = require('chai').should(),
         Event = require('../event-dom.js')(window),
         document = window.document,
-        EMIT_CLICK_EVENT, EMIT_FOCUS_EVENT, EMIT_KEY_EVENT, buttonnode, divnode, divnode2;
+        EMIT_CLICK_EVENT, EMIT_FOCUS_EVENT, EMIT_KEY_EVENT, buttonnode, divnode, divnode2, buttonInnerNode;
 
     EMIT_CLICK_EVENT = function(target) {
         // dom.level2.events.MouseEvent('click');
@@ -117,6 +117,11 @@
             buttonnode = document.createElement('button');
             buttonnode.id = 'buttongo';
             buttonnode.className = 'buttongoclass';
+            buttonInnerNode = document.createElement('i');
+            buttonInnerNode.id = 'i_element';
+            var textNode = document.createTextNode('click me');
+            buttonInnerNode.appendChild(textNode);
+            buttonnode.appendChild(buttonInnerNode);
             divnode.appendChild(buttonnode);
             document.body.appendChild(divnode);
         });
@@ -238,6 +243,25 @@
                 e.target.id.should.be.eql('buttongo');
             }, '.contclass button');
             EMIT_CLICK_EVENT(buttonnode);
+            // CAUTIOUS: do not set timeout to 0 --> IE9 puts the after-dom-events
+            // a bit later in the js-stack: timeOut of 0 would happen before the after-evens
+            setTimeout(done, 50);
+        });
+
+        it('e.target when e.sourceTarget differs', function (done) {
+            Event.after('click', function(e) {
+                e.target.id.should.be.eql('buttongo');
+                e.sourceTarget.id.should.be.eql('i_element');
+            }, '#buttongo');
+            Event.after('click', function(e) {
+                e.target.id.should.be.eql('divcont');
+                e.sourceTarget.id.should.be.eql('i_element');
+            }, '.contclass');
+            Event.after('click', function(e) {
+                e.target.id.should.be.eql('buttongo');
+                e.sourceTarget.id.should.be.eql('i_element');
+            }, '.contclass button');
+            EMIT_CLICK_EVENT(buttonInnerNode);
             // CAUTIOUS: do not set timeout to 0 --> IE9 puts the after-dom-events
             // a bit later in the js-stack: timeOut of 0 would happen before the after-evens
             setTimeout(done, 50);
