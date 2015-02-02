@@ -1,26 +1,24 @@
 "use strict";
 
 /**
- * Adds the `hover` event as a DOM-event to event-dom. more about DOM-events:
+ * Adds the `blurnode` event as a DOM-event to event-dom. more about DOM-events:
  * http://www.smashingmagazine.com/2013/11/12/an-introduction-to-dom-events/
- *
- * Should be called using  the provided `mergeInto`-method like this:
  *
  *
  * <i>Copyright (c) 2014 ITSA - https://github.com/itsa</i>
  * New BSD License - http://choosealicense.com/licenses/bsd-3-clause/
  *
  * @example
- * Event = require('event-dom/hover.js')(window);
+ * Event = require('event-dom/blurnode.js')(window);
  *
  * or
  *
  * @example
  * Event = require('event-dom')(window);
- * require('event-dom/event-hover.js')(window);
+ * require('event-dom/event-blurnode.js')(window);
  *
  * @module event
- * @submodule event-hover
+ * @submodule event-blurnode
  * @class Event
  * @since 0.0.2
 */
@@ -40,47 +38,36 @@ module.exports = function (window) {
     }
 
     var Event = require('../event-dom.js')(window),
-        blurNodes = [],
-        subscriber, focusEvent,
+        blurVNode, subscriber, focusEvent,
 
     /*
-     * Creates the `hover` event. The eventobject has the property `e.hover` which is a `Promise`.
-     * You can use this Promise to get notification of the end of hover. The Promise e.hover gets resolved with
-     * `relatedTarget` as argument: the node where the mouse went into when leaving a.target.
+     * Creates the `blurnode` event.
      *
-     * @method setupHover
+     * @method setupBlurNode
      * @private
      * @since 0.0.2
      */
     setupBlurNode = function() {
         // create only after subscribing to the `hover`-event
-        subscriber = Event.after('blur', function(e) {
+        subscriber = Event.before('blur', function(e) {
             console.log(NAME, 'making list of blur-nodes');
-            blurNodes[blurNodes.length] = e.target;
+            blurVNode || (blurVNode=e.target.vnode);
             focusEvent || (focusEvent=Event.onceAfter('focus', function(e2) {
-                var focusNode = e2.target,
-                    len = blurNodes.length,
-                    i;
-                // remove blurnode when the new focusnode lies within:
-                for (i=len-1; i>=0; i--) {
-                    blurNode = blurNodes[i];
-                    blurNode.contains(focusNode) && blurNodes.splice(i, 1);
+                var focusVNode = e2.target.vnode;
+                while (focusVNode && blurVNode && !blurVNode.contains(focusVNode)) {
+                    Event.emit(blurVNode.domNode, 'UI:blurnode', e);
+                    blurVNode = blurVNode.vParent;
                 }
-                // every item that remains: fire a blurnode-event with the first blur-event object:
-                len = blurNodes.length;
-                for (i=0; i<len; i++) {
-                    Event.emit(blurNodes[i], 'UI:blurnode', e);
-                }
-                blurNodes.length = 0;
-                focusEvent = 0;
+                blurVNode = null;
+                focusEvent = null;
             }));
         });
     },
 
     /*
-     * Removes the `hover` event. Because there are no subscribers anymore.
+     * Removes the `blurnode` event. Because there are no subscribers anymore.
      *
-     * @method teardownHover
+     * @method teardownBlurNode
      * @private
      * @since 0.0.2
      */
@@ -102,6 +89,8 @@ module.exports = function (window) {
 
     Event.notify('UI:blurnode', setupBlurNode, Event, true);
     Event.notifyDetach('UI:blurnode', teardownBlurNode, Event);
+
+    Event.noDeepDomEvt('UI:blurnode');
 
     window._ITSAmodules.EventBlurNode = Event;
 
