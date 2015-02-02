@@ -123,7 +123,7 @@ module.exports = function (window) {
             vnode = subscriber.o.vnode,
             isCustomElement = vnode && vnode.isItag,
             isParcel = isCustomElement && (vnode.tag==='I-PARCEL'),
-            nodeid, byExactId;
+            nodeid, byExactId, newTarget;
 
         console.log(NAME, '_domSelToFunc type of selector = '+typeof selector);
         // note: selector could still be a function: in case another subscriber
@@ -189,8 +189,15 @@ module.exports = function (window) {
             if (outsideEvent && !match) {
                 // there is a match for the outside-event:
                 // we need to set e.sourceTarget and e.target:
-                e.sourceTarget = node;
-                subscriber.t = document.getElement(selector);
+                newTarget = document.getElement(selector, true);
+                if (newTarget) {
+                    e.sourceTarget = node;
+                    subscriber.t = newTarget;
+                }
+                else {
+                    // make return `false` because the selector is not in the dom
+                    match = true;
+                }
             }
             console.log(NAME, '_domSelToFunc filter returns '+(!outsideEvent ? match : !match));
             return !outsideEvent ? match : !match;
