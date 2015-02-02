@@ -186,6 +186,12 @@ module.exports = function (window) {
                     }
                 }
             }
+            if (outsideEvent && !match) {
+                // there is a match for the outside-event:
+                // we need to set e.sourceTarget and e.target:
+                e.sourceTarget = node;
+                subscriber.t = document.getElement(selector);
+            }
             console.log(NAME, '_domSelToFunc filter returns '+(!outsideEvent ? match : !match));
             return !outsideEvent ? match : !match;
         };
@@ -429,6 +435,7 @@ module.exports = function (window) {
     };
 
     _setupEvents = function() {
+        var lastFocussed;
 
         // make sure disabled buttons don't work:
         Event.before(['click', 'tap'], function(e) {
@@ -464,6 +471,18 @@ module.exports = function (window) {
                 }
             }
         );
+
+        // fix activeElement on Mac
+        Event.before('focus', function(e) {
+            // will come here more often because of bubblechain
+            // however, the last pass-through will set the deepest node
+            lastFocussed = e.target;
+        });
+
+        Event.after('focus', function(e) {
+            // DOCUMENT._activeElement is used with the patch for DOCUMENT.activeElement its getter
+            DOCUMENT._activeElement = lastFocussed;
+        });
 
     };
 
