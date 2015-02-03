@@ -139,14 +139,14 @@
         });
 
         it('listening event', function (done) {
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done();
             }, '#buttongo');
             EMIT_CLICK_EVENT(buttonnode);
         });
 
         it('listening event should not happen', function (done) {
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done(new Error('Event should not occur'));
             }, '#buttongo');
             EMIT_CLICK_EVENT(divnode);
@@ -156,14 +156,14 @@
         });
 
         it('listening outside-event', function (done) {
-            Event.after('clickoutside', function() {
+            Event.after('tapoutside', function() {
                 done();
             }, '#buttongo');
             EMIT_CLICK_EVENT(divnode);
         });
 
         it('listening outside-event not happen', function (done) {
-            Event.after('clickoutside', function() {
+            Event.after('tapoutside', function() {
                 done(new Error('Event should not occur'));
             }, '#buttongo');
             EMIT_CLICK_EVENT(buttonnode);
@@ -173,10 +173,10 @@
         });
 
         it('preventing event', function (done) {
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done(new Error('event should not happen'));
             }, '#buttongo');
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 e.preventDefault();
             }, '#buttongo');
             EMIT_CLICK_EVENT(buttonnode);
@@ -186,10 +186,10 @@
         });
 
         it('halt event', function (done) {
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done(new Error('event should not happen'));
             }, '#buttongo');
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 e.halt();
             }, '#buttongo');
             EMIT_CLICK_EVENT(buttonnode);
@@ -201,10 +201,10 @@
         it('delegation on future nodes', function (done) {
             var count = 0,
                 buttonnode2, buttonnode3;
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 count++;
             }, '#buttongo2');
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 count++;
             }, '.go');
 
@@ -233,13 +233,13 @@
         });
 
         it('e.target', function (done) {
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 e.target.id.should.be.eql('buttongo');
             }, '#buttongo');
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 e.target.id.should.be.eql('divcont');
             }, '.contclass');
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 e.target.id.should.be.eql('buttongo');
             }, '.contclass button');
             EMIT_CLICK_EVENT(buttonnode);
@@ -249,15 +249,15 @@
         });
 
         it('e.target when e.sourceTarget differs', function (done) {
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 e.target.id.should.be.eql('buttongo');
                 e.sourceTarget.id.should.be.eql('i_element');
             }, '#buttongo');
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 e.target.id.should.be.eql('divcont');
                 e.sourceTarget.id.should.be.eql('i_element');
             }, '.contclass');
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 e.target.id.should.be.eql('buttongo');
                 e.sourceTarget.id.should.be.eql('i_element');
             }, '.contclass button');
@@ -268,19 +268,19 @@
         });
 
         it('e.target with filterfunction', function (done) {
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 e.target.id.should.be.eql('buttongo');
             }, function(e) {
                 return e.target.id==='buttongo';
             });
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 // manual filterfunction doesn't reset e.target
                 e.target.id.should.be.eql('buttongo');
             }, function(e) {
                 return e.target.id==='divcont';
             });
             // a third time again on lowest level, to check if e.target is reset:
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 e.target.id.should.be.eql('buttongo');
             }, function(e) {
                 return e.target.id==='buttongo';
@@ -292,14 +292,14 @@
         });
 
         it('e.target with mixed selector and filterfunction', function (done) {
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 e.target.id.should.be.eql('buttongo');
             }, '#buttongo');
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 e.target.id.should.be.eql('divcont');
             }, '.contclass');
             // a third time again on lowest level, to check if e.target is reset:
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 // manual filterfunction doesn't reset e.target
                 e.target.id.should.be.eql('buttongo');
             }, function(e) {
@@ -324,18 +324,18 @@
             divnode.appendChild(divnode2);
 
             // create subscriber on divnode2:
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 count++;
                 e.target.id.should.be.eql('divnode2');
             }, 'div.divnode2class');
             // create subscriber on containerdiv:
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 count++;
                 e.target.id.should.be.eql('divcont');
             }, 'div.contclass');
 
             // create subscriber on whatever div:
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 count++;
                 e.target.id.should.be.eql('divnode3');
             }, 'div');
@@ -352,13 +352,13 @@
         it('delegation on future nodes with preventDefault', function (done) {
             var count = 0,
                 buttonnode2, buttonnode3;
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 e.preventDefault();
             }, '#buttongo3');
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 count++;
             }, '#buttongo2');
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 count++;
             }, '.go');
 
@@ -389,43 +389,43 @@
         it('stopPropagation', function (done) {
             var count = 0;
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done(new Error('After-subscriber #divcont should not be invoked'));
             }, '#divcont');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 expect(count).to.eql(15);
                 count = count + 16;
             }, '#divcont button.buttongoclass');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 expect(count).to.eql(31);
                 count = count + 32;
             }, '#buttongo');
 
             //====================================================
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 done(new Error('Before-subscriber #divcont should not be invoked'));
             }, '#divcont');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(0);
                 count = count + 1;
             }, '#divcont button.buttongoclass');
 
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 expect(count).to.eql(1);
                 count = count + 2;
                 e.stopPropagation();
             }, '#divcont button.buttongoclass');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(3);
                 count = count + 4;
             }, '#divcont button.buttongoclass');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(7);
                 count = count + 8;
             }, '#buttongo');
@@ -455,51 +455,51 @@
             divnode.appendChild(divnode2);
 
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done(new Error('Before-subscriber button.buttongoglass should not be invoked'));
             }, 'button.buttongoclass');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 done(new Error('Before-subscriber .contclass should not be invoked'));
             }, '.contclass');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 expect(count).to.eql(31);
                 count = count + 32;
             }, '.divnode2class');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 expect(count).to.eql(15);
                 count = count + 16;
             }, '#divnode3');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 expect(count).to.eql(7);
                 count = count + 8;
             }, 'button');
 
             //====================================================
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 done(new Error('Before-subscriber button.buttongoglass should not be invoked'));
             }, 'button.buttongoclass');
 
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 done(new Error('Before-subscriber .contclass should not be invoked'));
             }, '.contclass');
 
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 expect(count).to.eql(3);
                 count = count + 4;
                 e.stopPropagation();
             }, '.divnode2class');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(1);
                 count = count + 2;
             }, '#divnode3');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(0);
                 count = count + 1;
             }, 'button');
@@ -530,51 +530,51 @@
             divnode.appendChild(divnode2);
 
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done(new Error('Before-subscriber button.buttongoglass should not be invoked'));
             }, 'button.buttongoclass');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 done(new Error('Before-subscriber .contclass should not be invoked'));
             }, '#divcont');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 expect(count).to.eql(31);
                 count = count + 32;
             }, '#divnode2');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 expect(count).to.eql(15);
                 count = count + 16;
             }, '#divnode3');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 expect(count).to.eql(7);
                 count = count + 8;
             }, 'button');
 
             //====================================================
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 done(new Error('Before-subscriber button.buttongoglass should not be invoked'));
             }, 'button.buttongoclass');
 
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 done(new Error('Before-subscriber .contclass should not be invoked'));
             }, '#divcont');
 
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 expect(count).to.eql(3);
                 count = count + 4;
                 e.stopPropagation();
             }, '#divnode2');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(1);
                 count = count + 2;
             }, '#divnode3');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(0);
                 count = count + 1;
             }, 'button');
@@ -595,40 +595,40 @@
         it('stopImmediatePropagation', function (done) {
             var count = 0;
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done(new Error('After-subscriber #divcont should not be invoked'));
             }, '#divcont');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done(new Error('Before-subscriber #divcont button.buttongoclass should not be invoked'));
             }, '#divcont button.buttongoclass');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done(new Error('Before-subscriber #buttongo should not be invoked'));
             }, '#buttongo');
 
             //====================================================
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 done(new Error('Before-subscriber #divcont should not be invoked'));
             }, '#divcont');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(0);
                 count = count + 1;
             }, '#divcont button.buttongoclass');
 
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 expect(count).to.eql(1);
                 count = count + 2;
                 e.stopImmediatePropagation();
             }, '#divcont button.buttongoclass');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 done(new Error('Before-subscriber #divcont button.buttongoclass should not be invoked'));
             }, '#divcont button.buttongoclass');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 done(new Error('Before-subscriber #buttongo should not be invoked'));
             }, '#buttongo');
 
@@ -657,50 +657,50 @@
             divnode.appendChild(divnode2);
 
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done(new Error('Before-subscriber button.buttongoglass should not be invoked'));
             }, 'button.buttongoclass');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 done(new Error('Before-subscriber .contclass should not be invoked'));
             }, '.contclass');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 done(new Error('Before-subscriber .divnode2class should not be invoked'));
             }, '.divnode2class');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 expect(count).to.eql(15);
                 count = count + 16;
             }, '#divnode3');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 expect(count).to.eql(7);
                 count = count + 8;
             }, 'button');
 
             //====================================================
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 done(new Error('Before-subscriber button.buttongoglass should not be invoked'));
             }, 'button.buttongoclass');
 
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 done(new Error('Before-subscriber .contclass should not be invoked'));
             }, '.contclass');
 
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 expect(count).to.eql(3);
                 count = count + 4;
                 e.stopImmediatePropagation();
             }, '.divnode2class');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(1);
                 count = count + 2;
             }, '#divnode3');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(0);
                 count = count + 1;
             }, 'button');
@@ -731,50 +731,50 @@
             divnode.appendChild(divnode2);
 
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 done(new Error('Before-subscriber button.buttongoglass should not be invoked'));
             }, 'button.buttongoclass');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 done(new Error('Before-subscriber .contclass should not be invoked'));
             }, '#divcont');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 done(new Error('Before-subscriber .divnode2class should not be invoked'));
             }, '#divnode2');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 expect(count).to.eql(15);
                 count = count + 16;
             }, '#divnode3');
 
-            Event.after('click', function() {
+            Event.after('tap', function() {
                 expect(count).to.eql(7);
                 count = count + 8;
             }, 'button');
 
             //====================================================
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 done(new Error('Before-subscriber button.buttongoglass should not be invoked'));
             }, 'button.buttongoclass');
 
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 done(new Error('Before-subscriber .contclass should not be invoked'));
             }, '#divcont');
 
-            Event.before('click', function(e) {
+            Event.before('tap', function(e) {
                 expect(count).to.eql(3);
                 count = count + 4;
                 e.stopImmediatePropagation();
             }, '#divnode2');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(1);
                 count = count + 2;
             }, '#divnode3');
 
-            Event.before('click', function() {
+            Event.before('tap', function() {
                 expect(count).to.eql(0);
                 count = count + 1;
             }, 'button');
@@ -803,7 +803,7 @@
             divnode2.appendChild(divnode3);
             divnode.appendChild(divnode2);
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 (e.target===divnode2).should.be.true;
             }, '#divcont .divnode2class');
 
@@ -830,11 +830,11 @@
             divnode2.appendChild(divnode3);
             divnode.appendChild(divnode2);
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 (e.currentTarget===divnode).should.be.true;
             }, '#divcont .divnode2class');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 (e.currentTarget===divnode2).should.be.true;
             }, '#divnode2 button');
 
@@ -861,11 +861,11 @@
             divnode2.appendChild(divnode3);
             divnode.appendChild(divnode2);
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 (e.sourceTarget===deepestbutton).should.be.true;
             }, '#divcont .divnode2class');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 (e.sourceTarget===deepestbutton).should.be.true;
             }, '#divnode2 button');
 
@@ -890,11 +890,11 @@
             divnode2.appendChild(divnode3);
             divnode.appendChild(divnode2);
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 (e.target===divnode2).should.be.true;
             }, '.divnode2class');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 (e.target===deepestbutton).should.be.true;
             }, '.divnode2class button');
 
@@ -919,11 +919,11 @@
             divnode2.appendChild(divnode3);
             divnode.appendChild(divnode2);
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 (e.currentTarget===document).should.be.true;
             }, '.divnode2class');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 (e.currentTarget===document).should.be.true;
             }, '.divnode2class button');
 
@@ -948,11 +948,11 @@
             divnode2.appendChild(divnode3);
             divnode.appendChild(divnode2);
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 (e.sourceTarget===deepestbutton).should.be.true;
             }, '.divnode2class');
 
-            Event.after('click', function(e) {
+            Event.after('tap', function(e) {
                 (e.sourceTarget===deepestbutton).should.be.true;
             }, '.divnode2class button');
 
