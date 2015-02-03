@@ -124,7 +124,7 @@ module.exports = function (window) {
             context = subscriber.o,
             vnode = subscriber.o.vnode,
             isCustomElement = vnode && vnode.isItag,
-            isParcel = isCustomElement && (vnode.tag==='I-PARCEL'),
+            visibleContent = isCustomElement && !vnode.domNode.contentHidden,
             nodeid, byExactId, newTarget, deepSearch;
 
         console.log(NAME, '_domSelToFunc type of selector = '+typeof selector);
@@ -149,7 +149,7 @@ module.exports = function (window) {
                 vnode = node.vnode,
                 character1 = selector && selector.substr(1),
                 match = false;
-            if (!isCustomElement || isParcel || subscriber.o.contains(node)) {
+            if (!isCustomElement || visibleContent || subscriber.o.contains(node)) {
                 if (selector==='') {
                     match = true;
                 }
