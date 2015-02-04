@@ -35,16 +35,16 @@ var NAME = '[event-valuechange]: ',
     UTILS = require('utils'),
 
     /**
-    Interval (in milliseconds) at which to poll for changes to the value of an
-    element with one or more `valuechange` subscribers when the user is likely
-    to be interacting with it.
-
-    @property POLL_INTERVAL
-    @type Number
-    @default 50
-    @static
+     * Interval (in milliseconds) at which to poll for changes to the value of an
+     * element with one or more `valuechange` subscribers, because of a `right-click paste`
+     * which cannot be determined by the event-system
+     *
+     * @property POLL_INTERVAL
+     * @type Number
+     * @default 250
+     * @static
     **/
-    POLL_INTERVAL = 50;
+    POLL_INTERVAL = 250;
 
 module.exports = function (window) {
 
@@ -58,6 +58,8 @@ module.exports = function (window) {
     DOCUMENT = window.document,
     subscriberBlur,
     subscriberFocus,
+    subscriberRemoval,
+    finalizer,
 
     /*
      * Checks if the HtmlElement is editable.
@@ -106,6 +108,18 @@ module.exports = function (window) {
             node.setData(DATA_KEY, valueChangeData);
         }
         valueChangeData.prevVal = editable ? node.innerHTML : node[VALUE];
+
+        // both next eventlisteners will detach inside their subscriber:
+        subscriberBlur = Event.after('blur', endFocus);
+        subscriberRemoval = Event.after(
+                                'noderemove',
+                                endFocus,
+                                function(e2) {
+                                    return (e2.target===node);
+                                }
+                            );
+        finalizer && finalizer.detach();
+        finalizer = Event.finalize(checkChanged.bind(null, e));
         startPolling(e);
     },
 
@@ -120,6 +134,14 @@ module.exports = function (window) {
     endFocus = function(e) {
         console.log(NAME, 'endFocus');
         stopPolling(e.target);
+        if (finalizer) {
+            finalizer.detach();
+            finalizer = null;
+        }
+        // because we could come here by 2 different events,
+        // we need to detach them both
+        subscriberBlur.detach();
+        subscriberRemoval.detach();
     },
 
     /*
@@ -132,7 +154,6 @@ module.exports = function (window) {
     setupValueChange = function() {
         console.log(NAME, 'setupValueChange');
         // create only after subscribing to the `hover`-event
-        subscriberBlur = Event.after('blur', endFocus);
         subscriberFocus = Event.after('focus', startFocus);
         startFocus({target: DOCUMENT.activeElement});
     },
@@ -155,10 +176,11 @@ module.exports = function (window) {
         console.log(NAME, 'startPolling');
 
         valueChangeData = node.getData(DATA_KEY);
+
         // cancel previous timer: we don't want multiple timers:
         valueChangeData._pollTimer && valueChangeData._pollTimer.cancel();
         // setup a new timer:
-        valueChangeData._pollTimer = UTILS.later(checkChanged.bind(null, e), POLL_INTERVAL, true);
+        valueChangeData._pollTimer = UTILS.laterSilent(checkChanged.bind(null, e), POLL_INTERVAL, true);
     },
 
 
@@ -218,7 +240,8 @@ module.exports = function (window) {
         // loose performance.
         if (!Event._subs['UI:valuechange']) {
             console.log(NAME, 'teardownValueChange: stop setting up blur and focus-event');
-            subscriberBlur.detach();
+            subscriberBlur && subscriberBlur.detach();
+            subscriberRemoval && subscriberRemoval.detach();
             subscriberFocus.detach();
             // also stop any possible action/listeners to a current element:
             endFocus({target: DOCUMENT.activeElement});
@@ -226,6 +249,10 @@ module.exports = function (window) {
             Event.notify('UI:valuechange', setupValueChange, Event, true);
         }
     };
+
+    Event.defineEvent('UI:valuechange')
+         .unHaltable()
+         .noRender();
 
     Event.notify('UI:valuechange', setupValueChange, Event, true);
     Event.notifyDetach('UI:valuechange', teardownValueChange, Event);
@@ -242,9 +269,7 @@ module.exports = function (window) {
     DOCUMENT._emitVC = function(node, value) {
         console.log(NAME, 'document._emitVC');
         var e = {
-            value: value,
-            currentTarget: DOCUMENT,
-            sourceTarget: node
+            value: value
         };
         /**
         * @event valuechange
