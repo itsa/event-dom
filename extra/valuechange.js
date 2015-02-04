@@ -252,7 +252,7 @@ module.exports = function (window) {
 
     Event.defineEvent('UI:valuechange')
          .unHaltable()
-         .noRender();
+         .noFinalize(); // NOT noRender!
 
     Event.notify('UI:valuechange', setupValueChange, Event, true);
     Event.notifyDetach('UI:valuechange', teardownValueChange, Event);
