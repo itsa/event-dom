@@ -265,8 +265,8 @@ module.exports = function (window) {
         if (eventName==='tap') {
             // prevent the next click-event
             preventClick = true;
-            e.clientX = e.center.x;
-            e.clientY = e.center.y;
+            e.clientX || (e.clientX = e.center && e.center.x);
+            e.clientY || (e.clientY = e.center && e.center.y);
         }
         else if (preventClick && (eventName===CLICK)) {
             preventClick = false;
