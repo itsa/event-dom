@@ -540,7 +540,11 @@ module.exports = function (window) {
         // patching DOCUMENT.activeElement because it doesn't work well in a Mac: https://developer.mozilla.org/en-US/docs/Web/API/document.activeElement
         // DOCUMENT._activeElement is used with the patch for DOCUMENT.activeElement its getter
         Event.after('focus', function() {
-            DOCUMENT._activeElement = lastFocussed;
+                DOCUMENT._activeElement = lastFocussed;
+        });
+
+        Event.before('blur', function() {
+                DOCUMENT._activeElement = null;
         });
 
         // Note: window.document has no prototype
