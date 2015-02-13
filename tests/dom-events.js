@@ -817,39 +817,6 @@
             }, 50);
         });
 
-
-/*
-        it('e.currentTarget', function (done) {
-            var divnode2 = document.createElement('div'),
-                divnode3 = document.createElement('div'),
-                deepestbutton = document.createElement('button');
-            divnode2.id = 'divnode2';
-            divnode3.id = 'divnode3';
-            divnode2.className = 'divnode2class';
-            divnode3.appendChild(deepestbutton);
-            divnode2.appendChild(divnode3);
-            divnode.appendChild(divnode2);
-
-            Event.after('tap', function(e) {
-                (e.currentTarget===divnode).should.be.true;
-            }, '#divcont .divnode2class');
-
-            Event.after('tap', function(e) {
-                (e.currentTarget===divnode2).should.be.true;
-            }, '#divnode2 button');
-
-            EMIT_CLICK_EVENT(deepestbutton);
-
-            // CAUTIOUS: do not set timeout to 0 --> IE9 puts the after-dom-events
-            // a bit later in the js-stack: timeOut of 0 would happen before the after-evens
-            setTimeout(function() {
-                divnode.removeChild(divnode2);
-                done();
-            }, 50);
-        });
-*/
-
-
         it('e.sourceTarget', function (done) {
             var divnode2 = document.createElement('div'),
                 divnode3 = document.createElement('div'),
@@ -908,7 +875,7 @@
             }, 50);
         });
 
-        it('e.currentTarget on document', function (done) {
+        it('e.currentTarget', function (done) {
             var divnode2 = document.createElement('div'),
                 divnode3 = document.createElement('div'),
                 deepestbutton = document.createElement('button');
@@ -920,11 +887,11 @@
             divnode.appendChild(divnode2);
 
             Event.after('tap', function(e) {
-                (e.currentTarget===document).should.be.true;
+                expect(e.currentTarget).to.be.equal(divnode2);
             }, '.divnode2class');
 
             Event.after('tap', function(e) {
-                (e.currentTarget===document).should.be.true;
+                expect(e.currentTarget).to.be.equal(deepestbutton);
             }, '.divnode2class button');
 
             EMIT_CLICK_EVENT(deepestbutton);
