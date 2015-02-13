@@ -141,6 +141,8 @@ module.exports = function (window) {
         byExactId = REGEXP_NODE_ID.test(selector);
 
         deepSearch = !NO_DEEP_SEARCH[customEvent];
+        // set the selector to `subscriber._s` so that e.currentTarget can calculate it:
+        subscriber._s = selector;
 
         subscriber.f = function(e) {
             // this stage is runned when the event happens
@@ -367,7 +369,7 @@ module.exports = function (window) {
                 return filtered;
             }(subscribers, function(subscriber) {return (!subscriber.f || subscriber.f.call(subscriber.o, e));});
             if (subscribers.length>0) {
-                _findCurrentTargets(subscribers);
+// _findCurrentTargets(subscribers);
                 // sorting, based upon the sortFn
                 subscribers.sort(SORT);
             }
@@ -376,7 +378,7 @@ module.exports = function (window) {
     };
 
     /*
-     * Sets e.target, e.currentTarget and e.sourceTarget for the single subscriber.
+     * Sets e.target and e.sourceTarget for the single subscriber.
      * Needs to be done for evenry single subscriber, because with a single event, these values change for each subscriber
      *
      * @method _preProcessor
@@ -408,7 +410,8 @@ module.exports = function (window) {
             return true;
         }
 
-        e.currentTarget = subscriber.n;
+        e._s = subscriber._s;
+
         // now we might need to set e.target to the right node:
         // the filterfunction might have found the true domnode that should act as e.target
         // and set it at subscriber.t
@@ -655,6 +658,19 @@ module.exports = function (window) {
     });
 
     // Now we do some initialization in order to make DOM-events work:
+
+    Object.defineProperty(Event._defaultEventObj, 'currentTarget', {
+        get: function() {
+            var ev = this,
+                e_target = ev.target;
+            if (e_target && ev._s) {
+                if (e_target.matches(ev._s)) {
+                    return e_target;
+                }
+                return e_target.inside(ev._s) || undefined;
+            }
+        }
+    });
 
     // Notify when someone subscribes to an UI:* event
     // if so: then we might need to define a customEvent for it:
