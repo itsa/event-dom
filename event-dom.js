@@ -87,7 +87,7 @@ module.exports = function (window) {
     /*
      * Transforms the selector to a valid function
      *
-     * @method _evCallback
+     * @method _selToFunc
      * @param customEvent {String} the customEvent that is transported to the eventsystem
      * @param subscriber {Object} subscriber
      * @param subscriber.o {Object} context
