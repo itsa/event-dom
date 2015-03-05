@@ -180,7 +180,7 @@ module.exports = function (window) {
         // cancel previous timer: we don't want multiple timers:
         valueChangeData._pollTimer && valueChangeData._pollTimer.cancel();
         // setup a new timer:
-        valueChangeData._pollTimer = UTILS.laterSilent(checkChanged.bind(null, e), POLL_INTERVAL, true);
+        valueChangeData._pollTimer = UTILS.later(checkChanged.bind(null, e), POLL_INTERVAL, true);
     },
 
 
