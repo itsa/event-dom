@@ -83,9 +83,7 @@ module.exports = function (window) {
         }
     };
 
-    Event.defineEvent('UI:blurnode')
-         .unPreventable()
-         .noRender();
+    Event.defineEvent('UI:blurnode').unPreventable();
 
     Event.notify('UI:blurnode', setupBlurNode, Event, true);
     Event.notifyDetach('UI:blurnode', teardownBlurNode, Event);

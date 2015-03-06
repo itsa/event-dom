@@ -1000,16 +1000,6 @@
             });
             Event.emit('UI:save5');
         });
-        it('check preventRender', function (done) {
-            setTimeout(done, 200);
-            Event.onceAfter('save5b', function(e) {
-                e.status.renderPrevented.should.be.true;
-            });
-            Event.onceBefore('save5b', function(e) {
-                e.preventRender();
-            });
-            Event.emit('UI:save5b');
-        });
         it('check e.halt()', function (done) {
             setTimeout(done, 200);
             Event.onceAfter('save6', function() {
