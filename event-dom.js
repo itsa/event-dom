@@ -20,7 +20,7 @@
 
 var NAME = '[event-dom]: ',
     Event = require('event'),
-    laterSilent = require('utils').laterSilent,
+    later = require('utils').later,
     createHashMap = require('js-ext/extra/hashmap.js').createMap,
     OUTSIDE = 'outside',
     REGEXP_NODE_ID = /^#\S+$/,
@@ -326,11 +326,11 @@ module.exports = function (window) {
             // we need to do this asynchronous: this way we pass them AFTER the DOM-event's defaultFn
             // also make sure to paas-in the payload of the manipulated eventobject
             subscribers = _getSubscribers(e, false, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs);
-            (subscribers.length>0) && laterSilent(Event._emit.bind(Event, e.target, customEvent, eventobject, [], subscribers, _preProcessor, true), 10);
+            (subscribers.length>0) && later(Event._emit.bind(Event, e.target, customEvent, eventobject, [], subscribers, _preProcessor, true), 10);
 
             // now check outside subscribers
             subscribers = _getSubscribers(e, false, subsOutside, wildcard_named_subsOutside);
-            (subscribers.length>0) && laterSilent(Event._emit.bind(Event, e.target, customEvent+OUTSIDE, eventobjectOutside, [], subscribers, _preProcessor, true), 10);
+            (subscribers.length>0) && later(Event._emit.bind(Event, e.target, customEvent+OUTSIDE, eventobjectOutside, [], subscribers, _preProcessor, true), 10);
         }
     };
 
@@ -527,7 +527,7 @@ module.exports = function (window) {
                     e._noRender = true;
                     // even if the node isn't in the DOM, we can still try to manipulate it:
                     // the vdom makes sure no errors occur when the node is already removed
-                    laterSilent(buttonNode.removeClass.bind(buttonNode, PURE_BUTTON_ACTIVE), TIME_BTN_PRESSED);
+                    later(buttonNode.removeClass.bind(buttonNode, PURE_BUTTON_ACTIVE), TIME_BTN_PRESSED);
                 }
             }
         );
@@ -562,12 +562,12 @@ module.exports = function (window) {
     _setupMutationListener = function() {
         DOCUMENT.hasMutationSubs = true;
         if (!mutationEventsDefined) {
-            Event.defineEvent(EV_REMOVED).unPreventable().noRender();
-            Event.defineEvent(EV_INSERTED).unPreventable().noRender();
-            Event.defineEvent(EV_CONTENT_CHANGE).unPreventable().noRender();
-            Event.defineEvent(EV_ATTRIBUTE_REMOVED).unPreventable().noRender();
-            Event.defineEvent(EV_ATTRIBUTE_CHANGED).unPreventable().noRender();
-            Event.defineEvent(EV_ATTRIBUTE_INSERTED).unPreventable().noRender();
+            Event.defineEvent(EV_REMOVED).unPreventable();
+            Event.defineEvent(EV_INSERTED).unPreventable();
+            Event.defineEvent(EV_CONTENT_CHANGE).unPreventable();
+            Event.defineEvent(EV_ATTRIBUTE_REMOVED).unPreventable();
+            Event.defineEvent(EV_ATTRIBUTE_CHANGED).unPreventable();
+            Event.defineEvent(EV_ATTRIBUTE_INSERTED).unPreventable();
             mutationEventsDefined = true;
         }
     };

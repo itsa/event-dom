@@ -59,7 +59,6 @@ module.exports = function (window) {
     subscriberBlur,
     subscriberFocus,
     subscriberRemoval,
-    finalizer,
 
     /*
      * Checks if the HtmlElement is editable.
@@ -118,8 +117,6 @@ module.exports = function (window) {
                                     return (e2.target===node);
                                 }
                             );
-        finalizer && finalizer.detach();
-        finalizer = Event.finalize(checkChanged.bind(null, e));
         startPolling(e);
     },
 
@@ -134,10 +131,6 @@ module.exports = function (window) {
     endFocus = function(e) {
         console.log(NAME, 'endFocus');
         stopPolling(e.target);
-        if (finalizer) {
-            finalizer.detach();
-            finalizer = null;
-        }
         // because we could come here by 2 different events,
         // we need to detach them both
         subscriberBlur.detach();
@@ -180,7 +173,7 @@ module.exports = function (window) {
         // cancel previous timer: we don't want multiple timers:
         valueChangeData._pollTimer && valueChangeData._pollTimer.cancel();
         // setup a new timer:
-        valueChangeData._pollTimer = UTILS.laterSilent(checkChanged.bind(null, e), POLL_INTERVAL, true);
+        valueChangeData._pollTimer = UTILS.later(checkChanged.bind(null, e), POLL_INTERVAL, true);
     },
 
 
@@ -250,9 +243,7 @@ module.exports = function (window) {
         }
     };
 
-    Event.defineEvent('UI:valuechange')
-         .unHaltable()
-         .noFinalize(); // NOT noRender!
+    Event.defineEvent('UI:valuechange').unHaltable();
 
     Event.notify('UI:valuechange', setupValueChange, Event, true);
     Event.notifyDetach('UI:valuechange', teardownValueChange, Event);

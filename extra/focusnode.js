@@ -84,9 +84,7 @@ module.exports = function (window) {
         }
     };
 
-    Event.defineEvent('UI:focusnode')
-         .unPreventable()
-         .noRender();
+    Event.defineEvent('UI:focusnode').unPreventable();
 
     Event.notify('UI:focusnode', setupFocusNode, Event, true);
     Event.notifyDetach('UI:focusnode', teardownFocusNode, Event);
