@@ -126,7 +126,7 @@ module.exports = function (window) {
             isCustomElement = vnode && vnode.isItag,
             visibleContent = isCustomElement && !vnode.domNode.contentHidden,
             nodeid, byExactId, newTarget, deepSearch;
-isCustomElement = false;
+
         console.log(NAME, '_domSelToFunc type of selector = '+typeof selector);
         // note: selector could still be a function: in case another subscriber
         // already changed it.
