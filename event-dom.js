@@ -698,10 +698,11 @@ module.exports = function (window) {
 
     _setupEvents();
 
-    // making HTMLElement to be able to emit using event-emitter:
-    (function(HTMLElementPrototype) {
-        HTMLElementPrototype.merge(Event.Emitter('UI'));
-    }(window.HTMLElement.prototype));
+    // making Element to be able to emit using event-emitter.
+    // NOT only HTMLElements --> SVGElements need to have this emitter to:
+    (function(ElementPrototype) {
+        ElementPrototype.merge(Event.Emitter('UI'));
+    }(window.Element.prototype));
 
 
     // Notify when someone subscribes to an UI:* event
