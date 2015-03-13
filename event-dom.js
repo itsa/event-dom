@@ -38,6 +38,7 @@ var NAME = '[event-dom]: ',
     CLICK = 'click',
     RIGHTCLICK = 'right'+CLICK,
     CENTERCLICK = 'center'+CLICK,
+    ANCHOR_CLICK = 'anchor'+CLICK,
     EV_REMOVED = UI+NODE+REMOVE,
     EV_INSERTED = UI+NODE+INSERT,
     EV_CONTENT_CHANGE = UI+NODE+'content'+CHANGE,
@@ -286,6 +287,8 @@ module.exports = function (window) {
             e.tapCount = 1;
         }
 
+        (eventName===ANCHOR_CLICK) && (eventName=CLICK);
+
         customEvent = 'UI:'+eventName;
 
         subs = allSubscribers[customEvent];
@@ -461,6 +464,7 @@ module.exports = function (window) {
 
         // only accept tap-events, yet later on we WILL need to listen for click-events
         (eventName===CLICK) && (eventName=TAP);
+        (eventName===ANCHOR_CLICK) && (eventName=CLICK);
 
         // now transform the subscriber's filter from css-string into a filterfunction
         _selToFunc(emitterName+':'+eventName+(outsideEvent ? OUTSIDE : ''), subscriber);
