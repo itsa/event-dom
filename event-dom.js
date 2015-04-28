@@ -724,7 +724,8 @@ module.exports = function (window) {
         * @since 0.0.1
         */
         ElementPrototype.getElementOnAvailable = function(cssSelector, inspectProtectedNodes) {
-            var node = DOCUMENT.getElement(cssSelector, inspectProtectedNodes);
+            var instance = this;
+            var node = instance.getElement(cssSelector, inspectProtectedNodes);
             if (node) {
                 return window.Promise.resolve(node);
             }
@@ -733,7 +734,7 @@ module.exports = function (window) {
                 var listener = Event.after('nodeinsert', function(e) {
                     // because it could be that `inspectProtectedNodes` prevents the node from return as a truthy value,
                     // we need to check again if the new node matches:
-                    var newnode = DOCUMENT.getElement(cssSelector, inspectProtectedNodes);
+                    var newnode = instance.getElement(cssSelector, inspectProtectedNodes);
                     if (newnode) {
                         resolve(newnode);
                         listener.detach();
@@ -744,6 +745,9 @@ module.exports = function (window) {
 
     }(window.Element.prototype));
 
+    DOCUMENT.getElementOnAvailable = function(cssSelector, inspectProtectedNodes) {
+        return DOCUMENT.documentElement.getElementOnAvailable(cssSelector, inspectProtectedNodes);
+    };
 
     // Notify when someone subscribes to an UI:* event
     // if so: then we might need to define a customEvent for it:
