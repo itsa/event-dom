@@ -708,6 +708,40 @@ module.exports = function (window) {
     // NOT only HTMLElements --> SVGElements need to have this emitter to:
     (function(ElementPrototype) {
         ElementPrototype.merge(Event.Emitter('UI'));
+
+       /**
+        * Gets one Element, specified by the css-selector. Either when alreasy available, or when it gets inserted in the dom.
+        * To retrieve a single element by id,
+        * you need to prepend the id-name with a `#`. When multiple Element's match, the first is returned.
+        *
+        * Returns a Promise with the Element as variable.
+        *
+        * @method getElementOnAvailable
+        * @for Element
+        * @param cssSelector {String} css-selector to match
+        * @param [inspectProtectedNodes=false] {Boolean} no deepsearch in protected Nodes or iTags --> by default, these elements should be hidden
+        * @return {Promise} with the Element that was search for as variable.
+        * @since 0.0.1
+        */
+        ElementPrototype.getElementOnAvailable = function(cssSelector, inspectProtectedNodes) {
+            var node = DOCUMENT.getElement(cssSelector, inspectProtectedNodes);
+            if (node) {
+                return window.Promise.resolve(node);
+            }
+            // node not currently in the dom --> setup a listener:
+            return new window.Promise(function(resolve) {
+                var listener = Event.after('nodeinsert', function(e) {
+                    // because it could be that `inspectProtectedNodes` prevents the node from return as a truthy value,
+                    // we need to check again if the new node matches:
+                    var newnode = DOCUMENT.getElement(cssSelector, inspectProtectedNodes);
+                    if (newnode) {
+                        resolve(newnode);
+                        listener.detach();
+                    }
+                }, cssSelector);
+            });
+        };
+
     }(window.Element.prototype));
 
 
