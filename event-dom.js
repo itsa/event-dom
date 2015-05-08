@@ -47,6 +47,8 @@ var NAME = '[event-dom]: ',
     EV_ATTRIBUTE_INSERTED = UI+ATTRIBUTE+INSERT,
     mutationEventsDefined = false,
     NO_DEEP_SEARCH = {},
+    ANCHOR_OFFSET = 2, // px
+    startX, startY,
 
     /*
      * Internal hash containing all DOM-events that are listened for (at `document`).
@@ -255,6 +257,7 @@ module.exports = function (window) {
         console.log(NAME, '_evCallback');
         var allSubscribers = Event._subs,
             eType = e.type,
+            eTarget = e.target,
             eventobject, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs, subsOutside,
             subscribers, eventobjectOutside, wildcard_named_subsOutside, customEvent, eventName, which;
 
@@ -276,9 +279,23 @@ module.exports = function (window) {
             return;
         }
 
+        if ((eventName==='mousedown') && ((eTarget.vnode && (e.target.vnode.tag==='A')) || eTarget.inside('a'))) {
+            // backup position in case of inside anchor
+            startX = e.clientX || (e.center && e.center.x);
+            startY = e.clientY || (e.center && e.center.y);
+        }
+
         if (eventName===CLICK) {
-            if (e.target.vnode && (e.target.vnode.tag==='A')) {
+            if ((eTarget.vnode && (e.target.vnode.tag==='A')) || eTarget.inside('a')) {
                 eventName = ANCHOR_CLICK;
+                e.clientX || (e.clientX = e.center && e.center.x);
+                e.clientY || (e.clientY = e.center && e.center.y);
+                // ALSO: determine the offset between the latest mousedown and the current mouseposition
+                // if there is an offset, then the user is scrolling and doesn't want to follow the link!
+                if ((Math.abs(startX-e.clientX)>=ANCHOR_OFFSET) || (Math.abs(startY-e.clientY)>=ANCHOR_OFFSET)) {
+                    e.preventDefault();
+                    return;
+                }
             }
             else {
                 eventName = 'tap';
@@ -725,21 +742,24 @@ module.exports = function (window) {
         */
         ElementPrototype.getElementOnAvailable = function(cssSelector, inspectProtectedNodes) {
             var instance = this;
-            var node = instance.getElement(cssSelector, inspectProtectedNodes);
-            if (node) {
-                return window.Promise.resolve(node);
-            }
             // node not currently in the dom --> setup a listener:
             return new window.Promise(function(resolve) {
-                var listener = Event.after('nodeinsert', function(e) {
-                    // because it could be that `inspectProtectedNodes` prevents the node from return as a truthy value,
-                    // we need to check again if the new node matches:
-                    var newnode = instance.getElement(cssSelector, inspectProtectedNodes);
-                    if (newnode) {
-                        resolve(newnode);
-                        listener.detach();
-                    }
-                }, cssSelector);
+                var node, listener;
+                node = instance.getElement(cssSelector, inspectProtectedNodes);
+                if (node) {
+                    resolve(node);
+                }
+                else {
+                    listener = Event.after('nodeinsert', function() {
+                        // because it could be that `inspectProtectedNodes` prevents the node from return as a truthy value,
+                        // we need to check again if the new node matches:
+                        var newnode = instance.getElement(cssSelector, inspectProtectedNodes);
+                        if (newnode) {
+                            resolve(newnode);
+                            listener.detach();
+                        }
+                    }, cssSelector);
+                }
             });
         };
 
