@@ -348,11 +348,11 @@ module.exports = function (window) {
             // last step: invoke the aftersubscribers
             // we need to do this asynchronous: this way we pass them AFTER the DOM-event's defaultFn
             // also make sure to paas-in the payload of the manipulated eventobject
-            subscribers = _getSubscribers(e, false, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs);
+            subscribers = _getSubscribers(eventobject, false, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs);
             (subscribers.length>0) && later(Event._emit.bind(Event, e.target, customEvent, eventobject, [], subscribers, _preProcessor, true), 10);
 
             // now check outside subscribers
-            subscribers = _getSubscribers(e, false, subsOutside, wildcard_named_subsOutside);
+            subscribers = _getSubscribers(eventobjectOutside, false, subsOutside, wildcard_named_subsOutside);
             (subscribers.length>0) && later(Event._emit.bind(Event, e.target, customEvent+OUTSIDE, eventobjectOutside, [], subscribers, _preProcessor, true), 10);
         }
     };
