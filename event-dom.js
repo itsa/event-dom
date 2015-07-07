@@ -36,6 +36,8 @@ var NAME = '[event-dom]: ',
     ATTRIBUTE = 'attribute',
     TAP = 'tap',
     CLICK = 'click',
+    MOUSEDOWN = 'mousedown',
+    PANSTART = 'panstart',
     RIGHTCLICK = 'right'+CLICK,
     CENTERCLICK = 'center'+CLICK,
     ANCHOR_CLICK = 'anchor'+CLICK,
@@ -74,6 +76,7 @@ var NAME = '[event-dom]: ',
 
 module.exports = function (window) {
     var DOCUMENT = window.document,
+        isMobile = require('useragent')(window).isMobile,
         _domSelToFunc, _evCallback, _findCurrentTargets, _preProcessor, _setupEvents, _setupMutationListener, _teardownMutationListener,
         _setupDomListener, _teardownDomListener, SORT, _sortFunc, _sortFuncReversed, _getSubscribers, _selToFunc, MUTATION_EVENTS, preventClick;
 
@@ -258,6 +261,8 @@ module.exports = function (window) {
         var allSubscribers = Event._subs,
             eType = e.type,
             eTarget = e.target,
+            supportHammer = !!Event.Hammer,
+            mobileEvents = supportHammer && isMobile,
             eventobject, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs, subsOutside,
             subscribers, eventobjectOutside, wildcard_named_subsOutside, customEvent, eventName, which;
 
@@ -268,7 +273,7 @@ module.exports = function (window) {
             (which===2) && (eventName=CENTERCLICK);
             (which===3) && (eventName=RIGHTCLICK);
         }
-        if ((eventName==='tap') && (!e.target.vnode || (e.target.vnode.tag!=='A'))) {
+        if ((eventName===TAP) && (!eTarget.vnode || (eTarget.vnode.tag!=='A'))) {
             // prevent the next click-event
             preventClick = true;
             e.clientX || (e.clientX = e.center && e.center.x);
@@ -279,33 +284,32 @@ module.exports = function (window) {
             return;
         }
 
-        if ((eventName==='mousedown') && ((eTarget.vnode && (e.target.vnode.tag==='A')) || eTarget.inside('a'))) {
+        if ((eventName===(mobileEvents ? PANSTART : MOUSEDOWN)) && ((eTarget.vnode && (eTarget.vnode.tag==='A')) || eTarget.inside('a'))) {
             // backup position in case of inside anchor
             startX = e.clientX || (e.center && e.center.x);
             startY = e.clientY || (e.center && e.center.y);
         }
 
         if (eventName===CLICK) {
-            if ((eTarget.vnode && (e.target.vnode.tag==='A')) || eTarget.inside('a')) {
-                eventName = ANCHOR_CLICK;
-                e.clientX || (e.clientX = e.center && e.center.x);
-                e.clientY || (e.clientY = e.center && e.center.y);
-                // ALSO: determine the offset between the latest mousedown and the current mouseposition
-                // if there is an offset, then the user is scrolling and doesn't want to follow the link!
-                if ((Math.abs(startX-e.clientX)>=ANCHOR_OFFSET) || (Math.abs(startY-e.clientY)>=ANCHOR_OFFSET)) {
-                    e.preventDefault();
-                    return;
-                }
-            }
-            else {
-                eventName = 'tap';
-                e.center = {
-                    x: e.clientX,
-                    y: e.clientY
-                };
-                e.eventType = 4;
-                e.pointerType = 'mouse';
-                e.tapCount = 1;
+            eventName = TAP;
+            e.center = {
+                x: e.clientX,
+                y: e.clientY
+            };
+            e.eventType = 4;
+            e.pointerType = 'mouse';
+            e.tapCount = 1;
+        }
+
+        if ((eventName===TAP) && ((eTarget.vnode && (eTarget.vnode.tag==='A')) || eTarget.inside('a'))) {
+            eventName = ANCHOR_CLICK;
+            e.clientX || (e.clientX = e.center && e.center.x);
+            e.clientY || (e.clientY = e.center && e.center.y);
+            // ALSO: determine the offset between the latest mousedown and the current mouseposition
+            // if there is an offset, then the user is scrolling and doesn't want to follow the link!
+            if ((Math.abs(startX-e.clientX)>=ANCHOR_OFFSET) || (Math.abs(startY-e.clientY)>=ANCHOR_OFFSET)) {
+                e.preventDefault();
+                return;
             }
         }
 
@@ -521,7 +525,7 @@ module.exports = function (window) {
         var lastFocussed;
 
         // make sure disabled buttons don't work:
-        Event.before(['tap', 'press'], function(e) {
+        Event.before([TAP, 'press'], function(e) {
             e.preventDefault();
         }, '.pure-button-disabled, button[disabled]');
 
@@ -542,7 +546,7 @@ module.exports = function (window) {
         // make sure that a focussed button which recieves an keypress also fires the `tap`-event
         // note: the `click`-event will always be fired by the browser
         Event.after(
-            'tap',
+            TAP,
             function(e) {
                 var buttonNode = e.target;
                 if (e._buttonPressed) {
