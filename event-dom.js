@@ -291,25 +291,26 @@ module.exports = function (window) {
         }
 
         if (eventName===CLICK) {
-            eventName = TAP;
-            e.center = {
-                x: e.clientX,
-                y: e.clientY
-            };
-            e.eventType = 4;
-            e.pointerType = 'mouse';
-            e.tapCount = 1;
-        }
-
-        if ((eventName===TAP) && ((eTarget.vnode && (eTarget.vnode.tag==='A')) || eTarget.inside('a'))) {
-            eventName = ANCHOR_CLICK;
-            e.clientX || (e.clientX = e.center && e.center.x);
-            e.clientY || (e.clientY = e.center && e.center.y);
-            // ALSO: determine the offset between the latest mousedown and the current mouseposition
-            // if there is an offset, then the user is scrolling and doesn't want to follow the link!
-            if ((Math.abs(startX-e.clientX)>=ANCHOR_OFFSET) || (Math.abs(startY-e.clientY)>=ANCHOR_OFFSET)) {
-                e.preventDefault();
-                return;
+            if ((eTarget.vnode && (e.target.vnode.tag==='A')) || eTarget.inside('a')) {
+                eventName = ANCHOR_CLICK;
+                e.clientX || (e.clientX = e.center && e.center.x);
+                e.clientY || (e.clientY = e.center && e.center.y);
+                // ALSO: determine the offset between the latest mousedown and the current mouseposition
+                // if there is an offset, then the user is scrolling and doesn't want to follow the link!
+                if ((Math.abs(startX-e.clientX)>=ANCHOR_OFFSET) || (Math.abs(startY-e.clientY)>=ANCHOR_OFFSET)) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+            else {
+                eventName = TAP;
+                e.center = {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+                e.eventType = 4;
+                e.pointerType = 'mouse';
+                e.tapCount = 1;
             }
         }
 
