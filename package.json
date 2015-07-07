@@ -30,6 +30,7 @@
         "vdom": "itsa/vdom",
         "js-ext": "itsa/js-ext",
         "window-ext": "itsa/window-ext",
+        "useragent": "itsa/useragent",
         "utils": "itsa/utils"
     },
     "devDependencies": {
