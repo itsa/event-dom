@@ -284,14 +284,14 @@ module.exports = function (window) {
             return;
         }
 
-        if ((eventName===(mobileEvents ? PANSTART : MOUSEDOWN)) && ((eTarget.vnode && (eTarget.vnode.tag==='A')) || eTarget.inside('a'))) {
+        if ((eventName===(mobileEvents ? PANSTART : MOUSEDOWN)) && (eTarget.vnode && ((eTarget.vnode.tag==='A') || eTarget.inside('a')))) {
             // backup position in case of inside anchor
             startX = e.clientX || (e.center && e.center.x);
             startY = e.clientY || (e.center && e.center.y);
         }
 
         if (eventName===CLICK) {
-            if ((eTarget.vnode && (e.target.vnode.tag==='A')) || eTarget.inside('a')) {
+            if (eTarget.vnode && ((e.target.vnode.tag==='A') || eTarget.inside('a'))) {
                 eventName = ANCHOR_CLICK;
                 e.clientX || (e.clientX = e.center && e.center.x);
                 e.clientY || (e.clientY = e.center && e.center.y);
