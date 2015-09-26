@@ -267,7 +267,7 @@ module.exports = function (window) {
             supportHammer = !!Event.Hammer,
             mobileEvents = supportHammer && isMobile,
             eventobject, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs, subsOutside,
-            subscribers, eventobjectOutside, wildcard_named_subsOutside, customEvent, eventName, which;
+            subscribers, eventobjectOutside, wildcard_named_subsOutside, customEvent, eventName, which, payloadGetters;
 
         eventName = eType;
         // first: a `click` event might be needed to transformed into `rightclick`:
@@ -335,6 +335,11 @@ module.exports = function (window) {
                     }
                 }
             });
+            payloadGetters = {
+                shiftKey: _shiftPressed,
+                ctrlKey: _ctrlPressed,
+                metaKey: _metaPressed
+            };
         }
 
         customEvent = 'UI:'+eventName;
@@ -353,13 +358,13 @@ module.exports = function (window) {
 
         // now so the work:
         subscribers = _getSubscribers(e, true, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs);
-        eventobject = Event._emit(e.target, customEvent, e, subscribers, [], _preProcessor, false, true);
+        eventobject = Event._emit(e.target, customEvent, e, subscribers, [], _preProcessor, false, payloadGetters);
 
         // now check outside subscribers
         subsOutside = allSubscribers[customEvent+OUTSIDE];
         wildcard_named_subsOutside = allSubscribers['*:'+eventName+OUTSIDE];
         subscribers = _getSubscribers(e, true, subsOutside, wildcard_named_subsOutside);
-        eventobjectOutside = Event._emit(e.target, customEvent+OUTSIDE, e, subscribers, [], _preProcessor, false, true);
+        eventobjectOutside = Event._emit(e.target, customEvent+OUTSIDE, e, subscribers, [], _preProcessor, false, payloadGetters);
 
         // if eventobject was preventdefaulted or halted: take appropriate action on
         // the original dom-event. Note: only the original event can caused this, not the outsideevent
@@ -377,11 +382,11 @@ module.exports = function (window) {
             // we need to do this asynchronous: this way we pass them AFTER the DOM-event's defaultFn
             // also make sure to paas-in the payload of the manipulated eventobject
             subscribers = _getSubscribers(eventobject, false, subs, wildcard_named_subs, named_wildcard_subs, wildcard_wildcard_subs);
-            (subscribers.length>0) && later(Event._emit.bind(Event, e.target, customEvent, eventobject, [], subscribers, _preProcessor, true), 10);
+            (subscribers.length>0) && later(Event._emit.bind(Event, e.target, customEvent, eventobject, [], subscribers, _preProcessor, true, payloadGetters), 10);
 
             // now check outside subscribers
             subscribers = _getSubscribers(eventobjectOutside, false, subsOutside, wildcard_named_subsOutside);
-            (subscribers.length>0) && later(Event._emit.bind(Event, e.target, customEvent+OUTSIDE, eventobjectOutside, [], subscribers, _preProcessor, true), 10);
+            (subscribers.length>0) && later(Event._emit.bind(Event, e.target, customEvent+OUTSIDE, eventobjectOutside, [], subscribers, _preProcessor, true, payloadGetters), 10);
         }
     };
 
