@@ -50,6 +50,9 @@ var NAME = '[event-dom]: ',
     mutationEventsDefined = false,
     NO_DEEP_SEARCH = {},
     ANCHOR_OFFSET = 2, // px
+    _shiftPressed = false, // protected registration: to be set on tap-events
+    _ctrlPressed = false, // protected registration: to be set on tap-events
+    _metaPressed = false, // protected registration: to be set on tap-events
     startX, startY,
 
     /*
@@ -314,6 +317,26 @@ module.exports = function (window) {
             }
         }
 
+        if (eventName===TAP) {
+            Object.defineProperties(e, {
+                shiftKey: {
+                    get: function() {
+                        return _shiftPressed;
+                    }
+                },
+                ctrlKey: {
+                    get: function() {
+                        return _ctrlPressed;
+                    }
+                },
+                metaKey: {
+                    get: function() {
+                        return _metaPressed;
+                    }
+                }
+            });
+        }
+
         customEvent = 'UI:'+eventName;
 
         subs = allSubscribers[customEvent];
@@ -541,6 +564,15 @@ module.exports = function (window) {
             function(e) {
                 var keyCode = e.keyCode;
                 return (e.target.getTagName()==='BUTTON') && ((keyCode===13) || (keyCode===32));
+            }
+        );
+
+        Event.after(
+            ['keydown', 'keyup'],
+            function(e) {
+                _shiftPressed = e.shiftKey; // protected registration: to be set on tap-events
+                _ctrlPressed = e.ctrlKey; // protected registration: to be set on tap-events
+                _metaPressed = e.metaKey; // protected registration: to be set on tap-events
             }
         );
 
