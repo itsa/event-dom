@@ -80,7 +80,7 @@
         // Code to execute before the tests inside this describegroup.
         before(function() {
             divnode = document.createElement('div');
-            divnode.style = 'position: absolute; left: -1000px; top: -1000px;';
+            divnode.setAttribute('style', 'position: absolute; left: -1000px; top: -1000px;');
             divnode2 = document.createElement('div');
             buttonnode = document.createElement('button');
             divnode2.appendChild(buttonnode);
@@ -113,7 +113,7 @@
             divnode = document.createElement('div');
             divnode.id = 'divcont';
             divnode.className = 'contclass';
-            divnode.style = 'position: absolute; left: -1000px; top: -1000px;';
+            divnode.setAttribute('style', 'position: absolute; left: -1000px; top: -1000px;');
             buttonnode = document.createElement('button');
             buttonnode.id = 'buttongo';
             buttonnode.className = 'buttongoclass';
@@ -210,14 +210,14 @@
 
             buttonnode2 = document.createElement('button');
             buttonnode2.id = 'buttongo2';
-            buttonnode2.style = 'position: absolute; left: -1000px; top: -1000px;';
-            buttonnode2.className = 'go';
+            buttonnode2.setAttribute('style', 'position: absolute; left: -1000px; top: -1000px;');
+            buttonnode2.setAttribute('class', 'go');
             document.body.appendChild(buttonnode2);
 
             buttonnode3 = document.createElement('button');
             buttonnode3.id = 'buttongo3';
-            buttonnode3.style = 'position: absolute; left: -1000px; top: -1000px;';
-            buttonnode3.className = 'go';
+            buttonnode3.setAttribute('style', 'position: absolute; left: -1000px; top: -1000px;');
+            buttonnode3.setAttribute('class', 'go');
             document.body.appendChild(buttonnode3);
 
             EMIT_CLICK_EVENT(buttonnode2);
@@ -364,14 +364,14 @@
 
             buttonnode2 = document.createElement('button');
             buttonnode2.id = 'buttongo2';
-            buttonnode2.style = 'position: absolute; left: -1000px; top: -1000px;';
-            buttonnode2.className = 'go';
+            buttonnode2.setAttribute('style', 'position: absolute; left: -1000px; top: -1000px;');
+            buttonnode2.setAttribute('class', 'go');
             document.body.appendChild(buttonnode2);
 
             buttonnode3 = document.createElement('button');
             buttonnode3.id = 'buttongo3';
-            buttonnode3.style = 'position: absolute; left: -1000px; top: -1000px;';
-            buttonnode3.className = 'go';
+            buttonnode3.setAttribute('style', 'position: absolute; left: -1000px; top: -1000px;');
+            buttonnode3.setAttribute('class', 'go');
             document.body.appendChild(buttonnode3);
 
             EMIT_CLICK_EVENT(buttonnode2);
