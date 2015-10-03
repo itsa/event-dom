@@ -312,7 +312,14 @@ module.exports = function (window) {
                     y: e.clientY
                 };
                 e.eventType = 4;
-                e.pointerType = 'mouse';
+                // 'pointerType' is a getter:
+                Object.defineProperties(e, {
+                    pointerType: {
+                        get: function() {
+                            return 'mouse';
+                        }
+                    }
+                });
                 e.tapCount = 1;
             }
         }
