@@ -26,7 +26,7 @@
     },
     "dependencies": {
         "polyfill": "itsa/polyfill",
-        "event": "itsa/itsa-event",
+        "itsa-event": "itsa/itsa-event",
         "vdom": "itsa/vdom",
         "js-ext": "itsa/js-ext",
         "window-ext": "itsa/window-ext",
