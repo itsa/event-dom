@@ -19,7 +19,7 @@
 
 
 var NAME = '[event-dom]: ',
-    Event = require('event'),
+    Event = require('itsa-event'),
     later = require('utils').later,
     createHashMap = require('js-ext/extra/hashmap.js').createMap,
     OUTSIDE = 'outside',
